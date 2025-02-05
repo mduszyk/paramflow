@@ -3,6 +3,8 @@ import json
 import os
 import tomllib
 
+from IPython.core.profileapp import profile_help
+
 
 class FrozenAttrDict(dict):
 
@@ -23,14 +25,18 @@ class FrozenAttrDict(dict):
         raise TypeError('FrozenAttrDict is immutable')
 
 
-def load_params(path, profile=None, env_prefix=None, args_prefix=None):
+def load_params(path, **kwargs):
     with open(path, 'rb') as f:
-        all_params = tomllib.load(f)
-        params = all_params.get('default', {})
+        params = tomllib.load(f)
+    return merge_params(params, **kwargs)
+
+
+def merge_params(params, profile=None, env_prefix=None, args_prefix=None):
+    profile_params = params.get('default', {})
 
     args = None
     if args_prefix is not None:
-        args = parse_args(params, args_prefix)
+        args = parse_args(profile_params, args_prefix)
 
     if profile is None:
         if env_prefix is not None:
@@ -39,15 +45,15 @@ def load_params(path, profile=None, env_prefix=None, args_prefix=None):
             profile = args.__dict__.get(args_prefix + 'params_profile')
 
     if profile is not None:
-        params.update(all_params[profile])
+        profile_params.update(params[profile])
 
     if env_prefix is not None:
-        update_from_env(params, env_prefix)
+        update_from_env(profile_params, env_prefix)
 
     if args_prefix is not None:
-        update_from_args(params, args, args_prefix)
+        update_from_args(profile_params, args, args_prefix)
 
-    return FrozenAttrDict(params)
+    return FrozenAttrDict(profile_params)
 
 
 def update_from_env(params, env_prefix):
