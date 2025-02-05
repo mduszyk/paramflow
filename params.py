@@ -1,86 +1,54 @@
-import argparse
-import json
-import os
-import tomllib
-
-from IPython.core.profileapp import profile_help
+from frozen_attr_dict import FrozenAttrDict
+from parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser
 
 
-class FrozenAttrDict(dict):
+parser_map = {
+    'toml': TomlParser,
+    'yaml': YamlParser,
+    'json': JsonParser,
+}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        object.__setattr__(self, '__dict__', self)
-
-    def __setattr__(self, key, value):
-        raise AttributeError('FrozenAttrDict is immutable')
-
-    def __delattr__(self, key):
-        raise AttributeError('FrozenAttrDict is immutable')
-
-    def __setitem__(self, key, value):
-        raise TypeError('FrozenAttrDict is immutable')
-
-    def __delitem__(self, key):
-        raise TypeError('FrozenAttrDict is immutable')
-
-
-def load_params(path, **kwargs):
-    with open(path, 'rb') as f:
-        params = tomllib.load(f)
-    return merge_params(params, **kwargs)
-
-
-def merge_params(params, profile=None, env_prefix=None, args_prefix=None):
-    profile_params = params.get('default', {})
-
-    args = None
+def load_params(paths, env_prefix=None, args_prefix=None, profile_key='params_profile', **kwargs):
+    if not isinstance(paths, list):
+        paths = [paths]
+    full_parsers = []
+    for path in paths:
+        ext = path.split('.')[-1]
+        parser_class = parser_map[ext]
+        full_parsers.append(parser_class(path))
+    parsers = []
+    if env_prefix is not None:
+        parsers.append(EnvParser(env_prefix))
     if args_prefix is not None:
-        args = parse_args(profile_params, args_prefix)
+        parsers.append(ArgsParser(args_prefix, profile_key))
+    return merge_params(full_parsers, parsers, profile_key=profile_key, **kwargs)
+
+
+def merge_params(full_parsers, parsers, profile=None, profile_key='params_profile'):
+    full_params = {}
+    for parser in full_parsers:
+        update_leaves(parser(), full_params)
+
+    profile_params = full_params.get('default', {})
+
+    params = {}
+    for parser in parsers:
+        update_leaves(parser(profile_params), params)
 
     if profile is None:
-        if env_prefix is not None:
-            profile = os.environ.get(env_prefix + 'PARAMS_PROFILE')
-        if args_prefix is not None:
-            profile = args.__dict__.get(args_prefix + 'params_profile')
+        profile = params.get(profile_key)
 
     if profile is not None:
-        profile_params.update(params[profile])
+        update_leaves(full_params[profile], profile_params)
 
-    if env_prefix is not None:
-        update_from_env(profile_params, env_prefix)
-
-    if args_prefix is not None:
-        update_from_args(profile_params, args, args_prefix)
+    update_leaves(params, profile_params)
 
     return FrozenAttrDict(profile_params)
 
 
-def update_from_env(params, env_prefix):
-    for env_key, env_value in os.environ.items():
-        if env_key.startswith(env_prefix):
-            key = env_key.replace(env_prefix, '').lower()
-            value = params.get(key)
-            if value is not None and not isinstance(value, str):
-                if isinstance(value, dict) or isinstance(value, list):
-                    env_value = json.loads(env_value)
-                elif isinstance(value, bool):
-                    env_value = env_value.lower() == 'true'
-                else:
-                    env_value = type(value)(env_value)
-            params[key] = env_value
-
-
-def parse_args(params, args_prefix):
-    parser = argparse.ArgumentParser()
-    parser.add_argument(f'--{args_prefix}params_profile', type=str, default=None)
-    for key, value in params.items():
-        parser.add_argument(f'--{args_prefix}{key}', type=type(value), default=None)
-    return parser.parse_args()
-
-
-def update_from_args(params, args, args_prefix):
-    for arg_key, arg_value in args.__dict__.items():
-        if arg_value is not None:
-            key = arg_key.replace(args_prefix, '')
-            params[key] = arg_value
+def update_leaves(src, dst):
+    for key, value in src.items():
+        if isinstance(value, dict) and isinstance(dst.get(key), dict):
+            update_leaves(value, dst[key])
+        else:
+            dst[key] = value
