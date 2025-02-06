@@ -1,7 +1,21 @@
 import os
+import sys
 from tempfile import NamedTemporaryFile
 
-from params import load_params, merge_params
+from params import load_params, merge_params, update_leaves
+
+
+def test_update_leaves():
+    dst = {
+        'default': {
+            'name': 'test',
+            'lr': 1e-3,
+            'debug': True,
+        }
+    }
+    src = {'default': {'name': 'test123'}}
+    update_leaves(dst, src)
+    assert dst['default']['name'] == 'test123'
 
 
 def test_toml_default():
@@ -13,9 +27,10 @@ def test_toml_default():
         debug = true
         """
     )
-    with NamedTemporaryFile(mode='w+', newline='', delete_on_close=False) as fp:
+    with NamedTemporaryFile(mode='w+', newline='', delete_on_close=False, suffix='.toml') as fp:
         fp.write(toml_data)
         fp.close()
+        sys.argv = ['test.py']
         params = load_params(fp.name)
     assert params.name == 'test'
     assert params.lr == 1e-3
@@ -24,17 +39,15 @@ def test_toml_default():
 
 def test_merge_profile():
     params = {
-        "default": { 'debug': True },
+        'default': { 'debug': True },
         'prod': { 'debug': False }
     }
-    params = merge_params(params, profile='prod')
+    params = merge_params([params], [], None, 'default', 'prod')
     assert not params.debug
 
 
-def test_merge_env():
-    params = {
-        "default": { 'name': 'test' },
-    }
-    os.environ['PARAMS_NAME'] = 'test123'
-    params = merge_params(params, env_prefix='PARAMS_')
+def test_merge_override_layers():
+    params = {'default': { 'name': 'test' }}
+    override_params = {'name': 'test123'}
+    params = merge_params([params], [override_params], None, 'default', None)
     assert params.name == 'test123'

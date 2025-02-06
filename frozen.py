@@ -1,4 +1,19 @@
 
+
+def freeze(params):
+    if isinstance(params, dict):
+        for key, value in params.items():
+            if isinstance(value, dict) or isinstance(value, list):
+                params[key] = freeze(value)
+        return FrozenAttrDict(params)
+    elif isinstance(params, list):
+        for i in range(len(params)):
+            value = params[i]
+            if isinstance(value, dict) or isinstance(value, list):
+                params[i] = freeze(value)
+        return FrozenList(params)
+
+
 class FrozenAttrDict(dict):
 
     def __init__(self, *args, **kwargs):

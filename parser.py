@@ -11,7 +11,8 @@ class TomlParser:
         self.path = path
 
     def __call__(self):
-        return tomllib.load(self.path)
+        with open(self.path, 'rb') as fp:
+            return tomllib.load(fp)
 
 
 class YamlParser:

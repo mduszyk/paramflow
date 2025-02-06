@@ -1,9 +1,7 @@
 from functools import reduce
 from typing import List
 
-from sqlalchemy.dialects.oracle.dictionary import all_indexes
-
-from frozen import FrozenAttrDict
+from frozen import freeze
 from parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser
 
 
@@ -47,8 +45,8 @@ def load_params(paths,
 def merge_params(profiles_params_layers: List[dict], override_params_layers: List[dict],
                  profile_key: str, default_profile: str, active_profile: str):
 
-    all_profiles_params = reduce(update_leaves, profiles_params_layers)
-    override_params = reduce(update_leaves, override_params_layers)
+    all_profiles_params = reduce(update_leaves, profiles_params_layers, {})
+    override_params = reduce(update_leaves, override_params_layers, {})
 
     profile_params = all_profiles_params.get(default_profile)
     if profile_params is None:
@@ -71,19 +69,14 @@ def merge_params(profiles_params_layers: List[dict], override_params_layers: Lis
 def update_leaves(dst: dict, src: dict):
     for key, src_value in src.items():
         if isinstance(src_value, dict) and isinstance(dst.get(key), dict):
-            update_leaves(src_value, dst[key])
+            update_leaves(dst[key], src_value)
         elif isinstance(src_value, list) and isinstance(dst.get(key), list) and len(src_value) == len(dst[key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    update_leaves(src_value[i], dst_item[i])
+                    update_leaves(dst_item[i], src_value[i])
                 else:
                     dst_item[i] = src_value[i]
         else:
             dst[key] = src_value
     return dst
-
-
-def freeze(params: dict):
-    # TODO recursively freeze all dicts and lists
-    return FrozenAttrDict(params)
