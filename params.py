@@ -45,8 +45,8 @@ def load_params(paths,
 def merge_params(profiles_params_layers: List[dict], override_params_layers: List[dict],
                  profile_key: str, default_profile: str, active_profile: str):
 
-    all_profiles_params = reduce(update_leaves, profiles_params_layers, {})
-    override_params = reduce(update_leaves, override_params_layers, {})
+    all_profiles_params = reduce(recursive_update, profiles_params_layers, {})
+    override_params = reduce(recursive_update, override_params_layers, {})
 
     profile_params = all_profiles_params.get(default_profile)
     if profile_params is None:
@@ -59,22 +59,22 @@ def merge_params(profiles_params_layers: List[dict], override_params_layers: Lis
             active_profile = params_active_profile
     if active_profile is not None:
         active_profile_params = all_profiles_params.get(active_profile)
-        update_leaves(profile_params, active_profile_params)
+        recursive_update(profile_params, active_profile_params)
 
-    update_leaves(profile_params, override_params)
+    recursive_update(profile_params, override_params)
 
     return freeze(profile_params)
 
 
-def update_leaves(dst: dict, src: dict):
+def recursive_update(dst: dict, src: dict):
     for key, src_value in src.items():
         if isinstance(src_value, dict) and isinstance(dst.get(key), dict):
-            update_leaves(dst[key], src_value)
+            recursive_update(dst[key], src_value)
         elif isinstance(src_value, list) and isinstance(dst.get(key), list) and len(src_value) == len(dst[key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    update_leaves(dst_item[i], src_value[i])
+                    recursive_update(dst_item[i], src_value[i])
                 else:
                     dst_item[i] = src_value[i]
         else:

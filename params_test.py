@@ -1,11 +1,10 @@
-import os
 import sys
 from tempfile import NamedTemporaryFile
 
-from params import load_params, merge_params, update_leaves
+from params import load_params, merge_params, recursive_update
 
 
-def test_update_leaves():
+def test_recursive_update():
     dst = {
         'default': {
             'name': 'test',
@@ -14,7 +13,7 @@ def test_update_leaves():
         }
     }
     src = {'default': {'name': 'test123'}}
-    update_leaves(dst, src)
+    recursive_update(dst, src)
     assert dst['default']['name'] == 'test123'
 
 
