@@ -1,6 +1,8 @@
 from functools import reduce
 from typing import List
 
+from sqlalchemy.dialects.oracle.dictionary import all_indexes
+
 from frozen import FrozenAttrDict
 from parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser
 
@@ -11,42 +13,57 @@ parser_map = {
     'json': JsonParser,
 }
 
-def load_params(paths, env_prefix=None, args_prefix=None, profile_key='params_profile', **kwargs):
+def load_params(paths,
+                env_prefix='P_',
+                args_prefix='',
+                profile_key='params_profile',
+                default_profile='default',
+                active_profile=None):
+
     if not isinstance(paths, list):
         paths = [paths]
-    full_params_list = []
+
+    profiles_params_layers = []
     for path in paths:
         ext = path.split('.')[-1]
         parser_class = parser_map[ext]
         parser = parser_class(path)
-        full_params_list.append(parser())
-    params_list = []
+        params = parser()
+        profiles_params_layers.append(params)
+
+    override_params_layers = []
     if env_prefix is not None:
         parser = EnvParser(env_prefix)
-        params_list.append(parser(full_params_list[0]))
+        env_params = parser(profiles_params_layers[0])
+        override_params_layers.append(env_params)
     if args_prefix is not None:
         parser = ArgsParser(args_prefix, profile_key)
-        params_list.append(parser(full_params_list[0]))
-    return merge_params(full_params_list, params_list, profile_key=profile_key, **kwargs)
+        args_params = parser(profiles_params_layers[0])
+        override_params_layers.append(args_params)
+
+    return merge_params(profiles_params_layers, override_params_layers, profile_key, default_profile, active_profile)
 
 
-def merge_params(full_params_list: List[dict], params_list: List[dict],
-                 profile: str=None, profile_key: str='params_profile', default_profile='default'):
+def merge_params(profiles_params_layers: List[dict], override_params_layers: List[dict],
+                 profile_key: str, default_profile: str, active_profile: str):
 
-    full_params = reduce(update_leaves, full_params_list)
-    params = reduce(update_leaves, params_list)
+    all_profiles_params = reduce(update_leaves, profiles_params_layers)
+    override_params = reduce(update_leaves, override_params_layers)
 
-    profile_params = full_params.get(default_profile)
+    profile_params = all_profiles_params.get(default_profile)
     if profile_params is None:
-        # profiles not in use
-        profile_params = full_params
-    else:
-        if profile is None:
-            profile = params.get(profile_key)
-        if profile is not None:
-            update_leaves(profile_params, full_params[profile])
+        # profiles disabled
+        profile_params = all_profiles_params
 
-    update_leaves(profile_params, params)
+    if active_profile is None:
+        params_active_profile = override_params.get(profile_key)
+        if params_active_profile is not None:
+            active_profile = params_active_profile
+    if active_profile is not None:
+        active_profile_params = all_profiles_params.get(active_profile)
+        update_leaves(profile_params, active_profile_params)
+
+    update_leaves(profile_params, override_params)
 
     return freeze(profile_params)
 

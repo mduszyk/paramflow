@@ -64,10 +64,10 @@ class ArgsParser:
 
     def __call__(self, params):
         parser = argparse.ArgumentParser()
-        parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None)
+        parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None, help='profile name')
         for key, value in params.items():
             parser.add_argument(f'--{self.prefix}{key}', type=type(value),
-                                default=None, help=f'eg: {value}')
+                                default=None, help=f'{key} = {value}')
         args = parser.parse_args()
         args_params = {}
         for arg_key, arg_value in args.__dict__.items():
