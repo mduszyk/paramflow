@@ -1,3 +1,4 @@
+import json
 from functools import reduce
 from typing import List
 
@@ -76,7 +77,22 @@ def recursive_update(dst: dict, src: dict):
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
                     recursive_update(dst_item[i], src_value[i])
                 else:
-                    dst_item[i] = src_value[i]
+                    dst_item[i] = convert_type(dst_item[i], src_value[i])
         else:
-            dst[key] = src_value
+            dst[key] = convert_type(dst.get(key), src_value)
     return dst
+
+
+def convert_type(dst_value, src_value):
+    dst_type = type(dst_value)
+    src_type = type(src_value)
+    if dst_type is src_type:
+        return src_value
+    if isinstance(dst_type, dict) or isinstance(dst_type, list):
+        if src_type is str:
+            return json.loads(src_value)
+        raise ValueError(f'cannot convert {src_type} to {dst_type}')
+    elif dst_value is None:
+        return src_value
+    else:
+        return dst_type(src_value)
