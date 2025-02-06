@@ -1,7 +1,7 @@
 import sys
 from tempfile import NamedTemporaryFile
 
-from params import load_params, merge_params, recursive_update
+from dparams.params import load, merge, recursive_update
 
 
 def test_recursive_update():
@@ -29,7 +29,7 @@ def test_toml_no_profiles():
         fp.write(toml_data)
         fp.close()
         sys.argv = ['test.py']
-        params = load_params(fp.name)
+        params = load(fp.name)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -48,7 +48,7 @@ def test_toml_default():
         fp.write(toml_data)
         fp.close()
         sys.argv = ['test.py']
-        params = load_params(fp.name)
+        params = load(fp.name)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -59,12 +59,12 @@ def test_merge_profile():
         'default': { 'debug': True },
         'prod': { 'debug': False }
     }
-    params = merge_params([params], [], None, 'default', 'prod')
+    params = merge([params], [], None, 'default', 'prod')
     assert not params.debug
 
 
 def test_merge_override_layers():
     params = {'default': { 'name': 'test' }}
     override_params = {'name': 'test123'}
-    params = merge_params([params], [override_params], None, 'default', None)
+    params = merge([params], [override_params], None, 'default', None)
     assert params.name == 'test123'

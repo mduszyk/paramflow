@@ -1,4 +1,4 @@
-from frozen import freeze, FrozenList, FrozenAttrDict
+from dparams.frozen import freeze, FrozenList, FrozenAttrDict
 
 
 def test_freeze():

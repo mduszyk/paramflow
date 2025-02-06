@@ -2,8 +2,8 @@ import json
 from functools import reduce
 from typing import List
 
-from frozen import freeze
-from parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser
+from dparams.frozen import freeze
+from dparams.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser
 
 
 parser_map = {
@@ -12,12 +12,12 @@ parser_map = {
     'json': JsonParser,
 }
 
-def load_params(paths,
-                env_prefix='P_',
-                args_prefix='',
-                profile_key='params_profile',
-                default_profile='default',
-                active_profile=None):
+def load(paths,
+         env_prefix='P_',
+         args_prefix='',
+         profile_key='params_profile',
+         default_profile='default',
+         active_profile=None):
 
     if not isinstance(paths, list):
         paths = [paths]
@@ -40,11 +40,11 @@ def load_params(paths,
         args_params = parser(profiles_params_layers[0])
         override_params_layers.append(args_params)
 
-    return merge_params(profiles_params_layers, override_params_layers, profile_key, default_profile, active_profile)
+    return merge(profiles_params_layers, override_params_layers, profile_key, default_profile, active_profile)
 
 
-def merge_params(profiles_params_layers: List[dict], override_params_layers: List[dict],
-                 profile_key: str, default_profile: str, active_profile: str):
+def merge(profiles_params_layers: List[dict], override_params_layers: List[dict],
+          profile_key: str, default_profile: str, active_profile: str):
 
     all_profiles_params = reduce(recursive_update, profiles_params_layers, {})
     override_params = reduce(recursive_update, override_params_layers, {})
