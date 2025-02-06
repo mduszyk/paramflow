@@ -18,6 +18,24 @@ def test_update_leaves():
     assert dst['default']['name'] == 'test123'
 
 
+def test_toml_no_profiles():
+    toml_data = (
+        """
+        name = 'test'
+        lr = 1e-3
+        debug = true
+        """
+    )
+    with NamedTemporaryFile(mode='w+', newline='', delete_on_close=False, suffix='.toml') as fp:
+        fp.write(toml_data)
+        fp.close()
+        sys.argv = ['test.py']
+        params = load_params(fp.name)
+    assert params.name == 'test'
+    assert params.lr == 1e-3
+    assert params.debug
+
+
 def test_toml_default():
     toml_data = (
         """
