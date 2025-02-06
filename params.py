@@ -88,10 +88,12 @@ def convert_type(dst_value, src_value):
     src_type = type(src_value)
     if dst_type is src_type:
         return src_value
-    if isinstance(dst_type, dict) or isinstance(dst_type, list):
+    if dst_type is dict or dst_type is list:
         if src_type is str:
             return json.loads(src_value)
         raise ValueError(f'cannot convert {src_type} to {dst_type}')
+    elif dst_type is bool:
+        return src_value.lower() == 'true'
     elif dst_value is None:
         return src_value
     else:

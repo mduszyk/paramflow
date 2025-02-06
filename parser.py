@@ -68,7 +68,7 @@ class ArgsParser:
         parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None, help='profile name')
         for key, value in params.items():
             typ = type(value)
-            if isinstance(typ, dict) or isinstance(typ, list):
+            if typ is dict or typ is list or typ is bool:
                 typ = str
             parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, help=f'{key} = {value}')
         args = parser.parse_args()
