@@ -21,7 +21,7 @@ CONVERSION_MAP = {
     }
 }
 
-def convert_type(dst_value, src_value, key=''):
+def convert_type(dst_value, src_value, path=''):
     dst_type = type(dst_value)
     src_type = type(src_value)
     if dst_type is src_type or dst_value is None:
@@ -30,6 +30,6 @@ def convert_type(dst_value, src_value, key=''):
         convert = CONVERSION_MAP[src_type][dst_type]
         return convert(src_value)
     except Exception as e:
-        if key != '':
-            key += ' '
-        raise TypeError(f'unable to convert {key}{src_type} to {dst_type}') from e
+        if path != '':
+            path += ' '
+        raise TypeError(f'unable to convert {path}{src_type} to {dst_type}') from e
