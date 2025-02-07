@@ -3,9 +3,9 @@ import argparse
 from functools import reduce
 from typing import List, Dict, Optional, Union, Final, Type
 
-from dparams.convert import convert_type
-from dparams.frozen import freeze, FrozenAttrDict
-from dparams.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser
+from paramflow.convert import convert_type
+from paramflow.frozen import freeze, FrozenAttrDict
+from paramflow.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser
 
 
 DEFAULT_ENV_PREFIX: Final[str] = 'P_'

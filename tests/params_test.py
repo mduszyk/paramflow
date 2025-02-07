@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from dparams.params import load, merge, recursive_update
+from paramflow.params import load, merge, recursive_update
 
 
 def test_recursive_update():

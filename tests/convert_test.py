@@ -1,6 +1,6 @@
 import pytest
 
-from dparams.convert import convert_type
+from paramflow.convert import convert_type
 
 
 def test_convert_type():

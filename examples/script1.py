@@ -1,6 +1,6 @@
 import json
-import dparams as dp
+import paramflow as pf
 
 # params = dp.load('script1.toml')
-params = dp.load()
+params = pf.load()
 print(json.dumps(params, indent=4))
