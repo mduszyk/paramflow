@@ -1,3 +1,5 @@
+import pytest
+
 from dparams.convert import convert_type
 
 
@@ -11,3 +13,8 @@ def test_convert_type():
     assert convert_type(False, 'true') == True
     assert convert_type({}, '{"a": 1, "b": 2}') == {'a': 1, 'b': 2}
     assert convert_type([], '[1, 2, 3]') == [1, 2, 3]
+
+
+def test_failed_conversion():
+    with pytest.raises(TypeError):
+        convert_type({}, 5)

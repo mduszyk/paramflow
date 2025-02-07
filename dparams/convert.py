@@ -28,6 +28,6 @@ def convert_type(dst_value, src_value):
         return src_value
     try:
         convert = CONVERSION_MAP[src_type][dst_type]
-    except KeyError:
-        raise TypeError(f'unable to convert {src_type} to {dst_type}')
-    return convert(src_value)
+        return convert(src_value)
+    except Exception as e:
+        raise TypeError(f'unable to convert {src_type} to {dst_type}') from e
