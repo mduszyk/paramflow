@@ -1,5 +1,6 @@
-import os
 import argparse
+import os
+import sys
 from functools import reduce
 from typing import List, Dict, Optional, Union, Final, Type
 
@@ -40,6 +41,9 @@ def load(file: Optional[Union[str, List[str]]] = None,
     meta_args_parser = ArgsParser(ARGS_PREFIX, PROFILE_KEY, DEFAULT_PROFILE, meta)
     layers = [meta, meta_env_parser(), meta_args_parser()]
     meta = freeze(reduce(merge_layers, layers, {}))
+
+    if meta.file is None:
+        sys.exit('file meta param is missing')
 
     paths = meta.file
     if not isinstance(paths, list):
