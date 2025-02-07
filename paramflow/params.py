@@ -69,16 +69,23 @@ def load(**kwargs) -> FrozenAttrDict[str, any]:
 def merge(layers: List[Dict[str, any]], default_profile: str, profile: str) -> Dict[str, any]:
     params = reduce(merge_layers, layers, {})
     profile_params = params[default_profile]
-    active_profile_params = params.get(profile)
-    merge_layers(profile_params, active_profile_params)
+    if '__source__' in params:
+        profile_params['__source__'] = params['__source__']
+    if profile != default_profile:
+        active_profile_params = params.get(profile)
+        merge_layers(profile_params, active_profile_params)
     return profile_params
 
 
 def merge_layers(dst: dict, src: dict) -> dict:
-    for key, src_value in src.items():
-        if isinstance(src_value, dict) and isinstance(dst.get(key), dict):
-            merge_layers(dst[key], src_value)
-        elif isinstance(src_value, list) and isinstance(dst.get(key), list) and len(src_value) == len(dst[key]):
+    for src_key, src_value in src.items():
+        if src_key == '__source__':
+            if not src_key in dst:
+                dst[src_key] = []
+            dst[src_key].extend(src_value)
+        elif isinstance(src_value, dict) and isinstance(dst.get(src_key), dict):
+            merge_layers(dst[src_key], src_value)
+        elif isinstance(src_value, list) and isinstance(dst.get(src_key), list) and len(src_value) == len(dst[src_key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
@@ -86,10 +93,5 @@ def merge_layers(dst: dict, src: dict) -> dict:
                 else:
                     dst_item[i] = convert_type(dst_item[i], src_value[i])
         else:
-            # if key == '__source__':
-            #     if not isinstance(dst[key], list):
-            #         dst[key] = dst[key]
-            #     dst[key].append(src_value)
-            # else:
-            dst[key] = convert_type(dst.get(key), src_value)
+            dst[src_key] = convert_type(dst.get(src_key), src_value)
     return dst

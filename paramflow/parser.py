@@ -23,7 +23,8 @@ class TomlParser(Parser):
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'rb') as fp:
             params = tomllib.load(fp)
-        params['__source__'] = self.path
+        if len(params) > 0:
+            params['__source__'] = [self.path]
         return params
 
 
@@ -35,7 +36,8 @@ class YamlParser(Parser):
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             params = yaml.safe_load(fp)
-        params['__source__'] = self.path
+        if len(params) > 0:
+            params['__source__'] = [self.path]
         return params
 
 
@@ -47,7 +49,8 @@ class JsonParser(Parser):
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             params = json.load(fp)
-        params['__source__'] = self.path
+        if len(params) > 0:
+            params['__source__'] = [self.path]
         return params
 
 
@@ -66,7 +69,8 @@ class EnvParser(Parser):
                 key = env_key.replace(self.prefix, '').lower()
                 if key in self.params:
                     env_params[key] = env_value
-        env_params['__source__'] = 'environment'
+        if len(env_params) > 0:
+            env_params['__source__'] = ['environment']
         if self.profile is not None:
             return {self.profile: env_params}
         return env_params
@@ -96,7 +100,8 @@ class ArgsParser(Parser):
             if arg_value is not None:
                 key = arg_key.replace(self.prefix, '')
                 args_params[key] = arg_value
-        args_params['__source__'] = 'environment'
+        if len(args_params) > 0:
+            args_params['__source__'] = ['arguments']
         if self.profile is not None:
             return {self.profile: args_params}
         return args_params
