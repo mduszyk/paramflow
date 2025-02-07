@@ -22,7 +22,9 @@ class TomlParser(Parser):
 
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'rb') as fp:
-            return tomllib.load(fp)
+            params = tomllib.load(fp)
+        params['__source__'] = self.path
+        return params
 
 
 class YamlParser(Parser):
@@ -32,7 +34,9 @@ class YamlParser(Parser):
 
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
-            return yaml.safe_load(fp)
+            params = yaml.safe_load(fp)
+        params['__source__'] = self.path
+        return params
 
 
 class JsonParser(Parser):
@@ -42,34 +46,45 @@ class JsonParser(Parser):
 
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
-            return json.load(fp)
+            params = json.load(fp)
+        params['__source__'] = self.path
+        return params
 
 
 class EnvParser(Parser):
 
-    def __init__(self, prefix: str):
+    def __init__(self, prefix: str, params: Dict[str, any], default_profile, profile=None):
         self.prefix = prefix
+        self.params = params
+        self.params = params.get(default_profile, params)
+        self.profile = profile
 
     def __call__(self) -> Dict[str, any]:
         env_params = {}
         for env_key, env_value in os.environ.items():
             if env_key.startswith(self.prefix):
                 key = env_key.replace(self.prefix, '').lower()
-                env_params[key] = env_value
+                if key in self.params:
+                    env_params[key] = env_value
+        env_params['__source__'] = 'environment'
+        if self.profile is not None:
+            return {self.profile: env_params}
         return env_params
 
 
 class ArgsParser(Parser):
 
-    def __init__(self, prefix: str, profile_key: str, default_profile: str, params: Dict[str, any]):
+    def __init__(self, prefix: str, profile_key: str, default_profile: str,
+                 params: Dict[str, any], profile=None):
         self.prefix = prefix
         self.profile_key = profile_key
         self.params = params.get(default_profile, params)
+        self.profile = profile
 
     def __call__(self) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
-        parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None,
-                            help='name of the profile to activate')
+        # parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None,
+        #                     help='name of the profile to activate')
         for key, value in self.params.items():
             typ = type(value)
             if typ is dict or typ is list or typ is bool:
@@ -81,4 +96,7 @@ class ArgsParser(Parser):
             if arg_value is not None:
                 key = arg_key.replace(self.prefix, '')
                 args_params[key] = arg_value
+        args_params['__source__'] = 'environment'
+        if self.profile is not None:
+            return {self.profile: args_params}
         return args_params

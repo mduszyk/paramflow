@@ -10,7 +10,7 @@ from paramflow.parser import TomlParser, YamlParser, JsonParser, EnvParser, Args
 
 DEFAULT_ENV_PREFIX: Final[str] = 'P_'
 DEFAULT_ARGS_PREFIX: Final[str] = ''
-DEFAULT_PROFILE: Final[str] = 'default'
+DEFAULT_DEFAULT_PROFILE: Final[str] = 'default'
 DEFAULT_PROFILE_KEY: Final[str] = 'profile'
 
 PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
@@ -20,88 +20,69 @@ PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
 }
 
 
-def load(paths: Optional[Union[str, List[str]]] = None,
-         env_prefix: str = DEFAULT_ENV_PREFIX,
-         args_prefix: str = DEFAULT_ARGS_PREFIX,
-         profile_key: str = DEFAULT_PROFILE_KEY,
-         default_profile: str = DEFAULT_PROFILE,
-         active_profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
+def load(**kwargs) -> FrozenAttrDict[str, any]:
+    meta = {
+        'path': None,
+        'env_prefix': DEFAULT_ENV_PREFIX,
+        'args_prefix': DEFAULT_ARGS_PREFIX,
+        'profile_key': DEFAULT_PROFILE_KEY,
+        'default_profile': DEFAULT_DEFAULT_PROFILE,
+        'profile': DEFAULT_DEFAULT_PROFILE,
+    }
+    meta_env_parser = EnvParser(DEFAULT_ENV_PREFIX, meta, DEFAULT_DEFAULT_PROFILE)
+    meta_args_parser = ArgsParser(DEFAULT_ARGS_PREFIX, DEFAULT_PROFILE_KEY, DEFAULT_DEFAULT_PROFILE, meta)
+    layers = [meta, meta_env_parser(), meta_args_parser(), kwargs]
+    meta = freeze(reduce(merge_layers, layers, {}))
 
-    if paths is None:
-        env_paths = os.environ.get(f'{env_prefix}PARAMS_FILE')
-        parser = argparse.ArgumentParser(add_help=False)
-        parser.add_argument(f'--{args_prefix}params_file', type=str, required=env_paths is None)
-        args, _ = parser.parse_known_args()
-        args_paths = args.__dict__[f'{args_prefix}params_file']
-        paths = args_paths or env_paths
-
+    paths = meta.path
     if not isinstance(paths, list):
         paths = [paths]
 
-    profiles_layers = []
+    layers = []
     for path in paths:
         ext = path.split('.')[-1]
         parser_class = PARSER_MAP[ext]
         parser = parser_class(path)
         params = parser()
-        params['__source__'] = path
-        profiles_layers.append(params)
+        if not meta.default_profile in params:
+            params = {meta.default_profile: params}
+        layers.append(params)
 
-    overrides_layers = []
-    if env_prefix is not None:
-        parser = EnvParser(env_prefix)
+    if meta.env_prefix is not None:
+        parser = EnvParser(meta.env_prefix, layers[0], meta.default_profile, profile=meta.profile)
         params = parser()
         if len(params) > 0:
-            params['__source__'] = 'environment'
-            overrides_layers.append(params)
-    if args_prefix is not None:
-        parser = ArgsParser(args_prefix, profile_key, default_profile, profiles_layers[0])
+            layers.append(params)
+
+    if meta.args_prefix is not None:
+        parser = ArgsParser(meta.args_prefix, meta.profile_key, meta.default_profile,
+                            layers[0], profile=meta.profile)
         params = parser()
         if len(params) > 0:
-            params['__source__'] = 'arguments'
-            overrides_layers.append(params)
+            layers.append(params)
 
-    params = merge(profiles_layers, overrides_layers, profile_key, default_profile, active_profile)
+    params = merge(layers, meta.default_profile, meta.profile)
 
     return freeze(params)
 
 
-def merge(profiles_layers: List[Dict[str, any]],
-          override_layers: List[Dict[str, any]],
-          profile_key: str = DEFAULT_PROFILE_KEY,
-          default_profile: str = DEFAULT_PROFILE,
-          active_profile: Optional[str] = None) -> Dict[str, any]:
-
-    all_profiles_params = reduce(recursive_update, profiles_layers, {})
-    override_params = reduce(recursive_update, override_layers, {})
-
-    profile_params = all_profiles_params.get(default_profile)
-    if profile_params is None:
-        # profiles disabled
-        profile_params = all_profiles_params
-
-    if active_profile is None:
-        params_active_profile = override_params.get(profile_key)
-        if params_active_profile is not None:
-            active_profile = params_active_profile
-    if active_profile is not None:
-        active_profile_params = all_profiles_params.get(active_profile)
-        recursive_update(profile_params, active_profile_params)
-
-    recursive_update(profile_params, override_params)
-
+def merge(layers: List[Dict[str, any]], default_profile: str, profile: str) -> Dict[str, any]:
+    params = reduce(merge_layers, layers, {})
+    profile_params = params[default_profile]
+    active_profile_params = params.get(profile)
+    merge_layers(profile_params, active_profile_params)
     return profile_params
 
 
-def recursive_update(dst: dict, src: dict) -> dict:
+def merge_layers(dst: dict, src: dict) -> dict:
     for key, src_value in src.items():
         if isinstance(src_value, dict) and isinstance(dst.get(key), dict):
-            recursive_update(dst[key], src_value)
+            merge_layers(dst[key], src_value)
         elif isinstance(src_value, list) and isinstance(dst.get(key), list) and len(src_value) == len(dst[key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    recursive_update(dst_item[i], src_value[i])
+                    merge_layers(dst_item[i], src_value[i])
                 else:
                     dst_item[i] = convert_type(dst_item[i], src_value[i])
         else:
