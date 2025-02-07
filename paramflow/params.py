@@ -8,10 +8,11 @@ from paramflow.frozen import freeze, FrozenAttrDict
 from paramflow.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser
 
 
-DEFAULT_ENV_PREFIX: Final[str] = 'P_'
-DEFAULT_ARGS_PREFIX: Final[str] = ''
-DEFAULT_DEFAULT_PROFILE: Final[str] = 'default'
-DEFAULT_PROFILE_KEY: Final[str] = 'profile'
+# defaults
+ENV_PREFIX: Final[str] = 'P_'
+ARGS_PREFIX: Final[str] = ''
+DEFAULT_PROFILE: Final[str] = 'default'
+PROFILE_KEY: Final[str] = 'profile'
 
 PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
     'toml': TomlParser,
@@ -20,18 +21,24 @@ PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
 }
 
 
-def load(**kwargs) -> FrozenAttrDict[str, any]:
+def load(path: Optional[Union[str, List[str]]] = None,
+         env_prefix: str = ENV_PREFIX,
+         args_prefix: str = ARGS_PREFIX,
+         profile_key: str = PROFILE_KEY,
+         default_profile: str = DEFAULT_PROFILE,
+         profile: Optional[str] = DEFAULT_PROFILE) -> FrozenAttrDict[str, any]:
+
     meta = {
-        'path': None,
-        'env_prefix': DEFAULT_ENV_PREFIX,
-        'args_prefix': DEFAULT_ARGS_PREFIX,
-        'profile_key': DEFAULT_PROFILE_KEY,
-        'default_profile': DEFAULT_DEFAULT_PROFILE,
-        'profile': DEFAULT_DEFAULT_PROFILE,
+        'path': path,
+        'env_prefix': env_prefix,
+        'args_prefix': args_prefix,
+        'profile_key': profile_key,
+        'default_profile': default_profile,
+        profile_key: profile,
     }
-    meta_env_parser = EnvParser(DEFAULT_ENV_PREFIX, meta, DEFAULT_DEFAULT_PROFILE)
-    meta_args_parser = ArgsParser(DEFAULT_ARGS_PREFIX, DEFAULT_PROFILE_KEY, DEFAULT_DEFAULT_PROFILE, meta)
-    layers = [meta, meta_env_parser(), meta_args_parser(), kwargs]
+    meta_env_parser = EnvParser(ENV_PREFIX, meta, DEFAULT_PROFILE)
+    meta_args_parser = ArgsParser(ARGS_PREFIX, PROFILE_KEY, DEFAULT_PROFILE, meta)
+    layers = [meta, meta_env_parser(), meta_args_parser()]
     meta = freeze(reduce(merge_layers, layers, {}))
 
     paths = meta.path
