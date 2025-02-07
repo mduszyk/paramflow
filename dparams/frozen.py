@@ -1,17 +1,4 @@
-
-
-def freeze(params):
-    if isinstance(params, dict):
-        for key, value in params.items():
-            if isinstance(value, dict) or isinstance(value, list):
-                params[key] = freeze(value)
-        return FrozenAttrDict(params)
-    elif isinstance(params, list):
-        for i in range(len(params)):
-            value = params[i]
-            if isinstance(value, dict) or isinstance(value, list):
-                params[i] = freeze(value)
-        return FrozenList(params)
+from typing import Union, List, Dict
 
 
 class FrozenAttrDict(dict):
@@ -64,3 +51,17 @@ class FrozenList(list):
 
     def __imul__(self, other):
         raise TypeError('FrozenList is immutable')
+
+
+def freeze(params: Union[List[any], Dict[str, any]]) -> Union[FrozenList[any], FrozenAttrDict[str, any]]:
+    if isinstance(params, dict):
+        for key, value in params.items():
+            if isinstance(value, dict) or isinstance(value, list):
+                params[key] = freeze(value)
+        return FrozenAttrDict(params)
+    elif isinstance(params, list):
+        for i in range(len(params)):
+            value = params[i]
+            if isinstance(value, dict) or isinstance(value, list):
+                params[i] = freeze(value)
+        return FrozenList(params)

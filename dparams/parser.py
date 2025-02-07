@@ -2,45 +2,62 @@ import argparse
 import json
 import os
 import tomllib
+from typing import Dict
+
 import yaml
 
+from abc import ABC, abstractmethod
 
-class TomlParser:
 
-    def __init__(self, path):
+class Parser(ABC):
+    @abstractmethod
+    def __call__(self) -> Dict[str, any]:
+        pass
+
+
+class TomlParser(Parser):
+
+    def __init__(self, path: str):
         self.path = path
 
-    def __call__(self):
+    def __call__(self) -> Dict[str, any]:
         with open(self.path, 'rb') as fp:
             return tomllib.load(fp)
 
 
-class YamlParser:
+class YamlParser(Parser):
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
 
-    def __call__(self):
+    def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             return yaml.safe_load(fp)
 
 
-class JsonParser:
+class JsonParser(Parser):
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
 
-    def __call__(self):
+    def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             return json.load(fp)
 
 
-class EnvParser:
+class UntypedParser(ABC):
+    """ Parser for the source that doesn't support types. """
+    @abstractmethod
+    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+        pass
 
-    def __init__(self, prefix):
+
+class EnvParser(UntypedParser):
+
+    def __init__(self, prefix: str):
         self.prefix = prefix
 
-    def __call__(self, params):
+    def __call__(self, params) -> Dict[str, any]:
         env_params = {}
         for env_key, env_value in os.environ.items():
             if env_key.startswith(self.prefix):
@@ -57,13 +74,13 @@ class EnvParser:
         return env_params
 
 
-class ArgsParser:
+class ArgsParser(UntypedParser):
 
-    def __init__(self, prefix, profile_key):
+    def __init__(self, prefix: str, profile_key: str):
         self.prefix = prefix
         self.profile_key = profile_key
 
-    def __call__(self, params):
+    def __call__(self, params) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
         parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None, help='profile name')
         for key, value in params.items():

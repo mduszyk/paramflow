@@ -22,7 +22,7 @@ def test_recursive_update():
 
 @pytest.fixture
 def temp_file(request):
-    def create_temp_file(suffix, content):
+    def create_temp_file(content, suffix):
         tmp = NamedTemporaryFile(delete=False, mode='w+', suffix=suffix)
         tmp.write(content)
         tmp.close()
@@ -39,7 +39,7 @@ def test_toml_no_profiles(temp_file):
         debug = true
         """
     )
-    file_path = temp_file('.toml', file_content)
+    file_path = temp_file(file_content, '.toml')
     sys.argv = ['test.py']
     params = load(file_path)
     assert params.name == 'test'
@@ -56,7 +56,7 @@ def test_toml_default(temp_file):
         debug = true
         """
     )
-    file_path = temp_file('.toml', file_content)
+    file_path = temp_file(file_content, '.toml')
     sys.argv = ['test.py']
     params = load(file_path)
     assert params.name == 'test'
@@ -69,12 +69,12 @@ def test_merge_profile():
         'default': { 'debug': True },
         'prod': { 'debug': False }
     }
-    params = merge([params], [], None, 'default', 'prod')
-    assert not params.debug
+    params = merge([params], [], active_profile='prod')
+    assert not params['debug']
 
 
 def test_merge_override_layers():
     params = {'default': { 'name': 'test' }}
     override_params = {'name': 'test123'}
-    params = merge([params], [override_params], None, 'default', None)
-    assert params.name == 'test123'
+    params = merge([params], [override_params])
+    assert params['name'] == 'test123'

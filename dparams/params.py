@@ -1,56 +1,67 @@
 import json
 from functools import reduce
-from typing import List
+from typing import List, Dict, Optional, Union, Final, Type
 
-from dparams.frozen import freeze
-from dparams.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser
+from dparams.frozen import freeze, FrozenAttrDict
+from dparams.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser
 
 
-parser_map = {
+DEFAULT_ENV_PREFIX: Final[str] = 'P_'
+DEFAULT_ARGS_PREFIX: Final[str] = ''
+DEFAULT_PROFILE: Final[str] = 'default'
+DEFAULT_PROFILE_KEY: Final[str] = 'params_profile'
+
+PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
     'toml': TomlParser,
     'yaml': YamlParser,
     'json': JsonParser,
 }
 
-def load(paths,
-         env_prefix='P_',
-         args_prefix='',
-         profile_key='params_profile',
-         default_profile='default',
-         active_profile=None):
+
+def load(paths: Union[str, List[str]],
+         env_prefix: str = DEFAULT_ENV_PREFIX,
+         args_prefix: str = DEFAULT_ARGS_PREFIX,
+         profile_key: str = DEFAULT_PROFILE_KEY,
+         default_profile: str = DEFAULT_PROFILE,
+         active_profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
 
     if not isinstance(paths, list):
         paths = [paths]
 
-    profiles_params_layers = []
+    profiles_layers = []
     for path in paths:
         ext = path.split('.')[-1]
-        parser_class = parser_map[ext]
+        parser_class = PARSER_MAP[ext]
         parser = parser_class(path)
         params = parser()
         params['__source__'] = path
-        profiles_params_layers.append(params)
+        profiles_layers.append(params)
 
-    override_params_layers = []
+    overrides_layers = []
     if env_prefix is not None:
         parser = EnvParser(env_prefix)
-        env_params = parser(profiles_params_layers[0])
+        env_params = parser(profiles_layers[0])
         env_params['__source__'] = 'environment'
-        override_params_layers.append(env_params)
+        overrides_layers.append(env_params)
     if args_prefix is not None:
         parser = ArgsParser(args_prefix, profile_key)
-        args_params = parser(profiles_params_layers[0])
+        args_params = parser(profiles_layers[0])
         args_params['__source__'] = 'arguments'
-        override_params_layers.append(args_params)
+        overrides_layers.append(args_params)
 
-    return merge(profiles_params_layers, override_params_layers, profile_key, default_profile, active_profile)
+    params = merge(profiles_layers, overrides_layers, profile_key, default_profile, active_profile)
+
+    return freeze(params)
 
 
-def merge(profiles_params_layers: List[dict], override_params_layers: List[dict],
-          profile_key: str, default_profile: str, active_profile: str):
+def merge(profiles_layers: List[Dict[str, any]],
+          override_layers: List[Dict[str, any]],
+          profile_key: str = DEFAULT_PROFILE_KEY,
+          default_profile: str = DEFAULT_PROFILE,
+          active_profile: Optional[str] = None) -> Dict[str, any]:
 
-    all_profiles_params = reduce(recursive_update, profiles_params_layers, {})
-    override_params = reduce(recursive_update, override_params_layers, {})
+    all_profiles_params = reduce(recursive_update, profiles_layers, {})
+    override_params = reduce(recursive_update, override_layers, {})
 
     profile_params = all_profiles_params.get(default_profile)
     if profile_params is None:
@@ -67,10 +78,10 @@ def merge(profiles_params_layers: List[dict], override_params_layers: List[dict]
 
     recursive_update(profile_params, override_params)
 
-    return freeze(profile_params)
+    return profile_params
 
 
-def recursive_update(dst: dict, src: dict):
+def recursive_update(dst: dict, src: dict) -> dict:
     for key, src_value in src.items():
         if isinstance(src_value, dict) and isinstance(dst.get(key), dict):
             recursive_update(dst[key], src_value)
