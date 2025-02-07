@@ -28,12 +28,12 @@ def load(paths: Optional[Union[str, List[str]]] = None,
          active_profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
 
     if paths is None:
-        paths = os.environ.get(f'{env_prefix}PARAMS_FILE')
-        if paths is None:
-            parser = argparse.ArgumentParser(add_help=False)
-            parser.add_argument(f'--{args_prefix}params_file', type=str, required=True)
-            args, _ = parser.parse_known_args()
-            paths = args.__dict__[f'{args_prefix}params_file']
+        env_paths = os.environ.get(f'{env_prefix}PARAMS_FILE')
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument(f'--{args_prefix}params_file', type=str, required=env_paths is None)
+        args, _ = parser.parse_known_args()
+        args_paths = args.__dict__[f'{args_prefix}params_file']
+        paths = args_paths or env_paths
 
     if not isinstance(paths, list):
         paths = [paths]
