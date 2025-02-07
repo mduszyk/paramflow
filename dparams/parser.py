@@ -45,45 +45,31 @@ class JsonParser(Parser):
             return json.load(fp)
 
 
-class UntypedParser(ABC):
-    """ Parser for the source that doesn't support types. """
-    @abstractmethod
-    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
-        pass
-
-
-class EnvParser(UntypedParser):
+class EnvParser(Parser):
 
     def __init__(self, prefix: str):
         self.prefix = prefix
 
-    def __call__(self, params) -> Dict[str, any]:
+    def __call__(self) -> Dict[str, any]:
         env_params = {}
         for env_key, env_value in os.environ.items():
             if env_key.startswith(self.prefix):
                 key = env_key.replace(self.prefix, '').lower()
-                type_ref = params.get(key)
-                if type_ref is not None and not isinstance(type_ref, str):
-                    if isinstance(type_ref, dict) or isinstance(type_ref, list):
-                        env_value = json.loads(env_value)
-                    elif isinstance(type_ref, bool):
-                        env_value = env_value.lower() == 'true'
-                    else:
-                        env_value = type(type_ref)(env_value)
                 env_params[key] = env_value
         return env_params
 
 
-class ArgsParser(UntypedParser):
+class ArgsParser(Parser):
 
-    def __init__(self, prefix: str, profile_key: str):
+    def __init__(self, prefix: str, profile_key: str, params: Dict[str, any]):
         self.prefix = prefix
         self.profile_key = profile_key
+        self.params = params
 
-    def __call__(self, params) -> Dict[str, any]:
+    def __call__(self) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
         parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None, help='profile name')
-        for key, value in params.items():
+        for key, value in self.params.items():
             typ = type(value)
             if typ is dict or typ is list or typ is bool:
                 typ = str

@@ -40,13 +40,13 @@ def load(paths: Union[str, List[str]],
     overrides_layers = []
     if env_prefix is not None:
         parser = EnvParser(env_prefix)
-        params = parser(profiles_layers[0])
+        params = parser()
         if len(params) > 0:
             params['__source__'] = 'environment'
             overrides_layers.append(params)
     if args_prefix is not None:
-        parser = ArgsParser(args_prefix, profile_key)
-        params = parser(profiles_layers[0])
+        parser = ArgsParser(args_prefix, profile_key, profiles_layers[0])
+        params = parser()
         if len(params) > 0:
             params['__source__'] = 'arguments'
             overrides_layers.append(params)
