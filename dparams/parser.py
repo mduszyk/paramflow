@@ -75,7 +75,7 @@ class ArgsParser(Parser):
             if typ is dict or typ is list or typ is bool:
                 typ = str
             parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, help=f'{key} = {value}')
-        args = parser.parse_args()
+        args, _ = parser.parse_known_args()
         args_params = {}
         for arg_key, arg_value in args.__dict__.items():
             if arg_value is not None:

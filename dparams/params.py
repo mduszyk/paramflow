@@ -1,3 +1,5 @@
+import os
+import argparse
 from functools import reduce
 from typing import List, Dict, Optional, Union, Final, Type
 
@@ -18,12 +20,20 @@ PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
 }
 
 
-def load(paths: Union[str, List[str]],
+def load(paths: Optional[Union[str, List[str]]] = None,
          env_prefix: str = DEFAULT_ENV_PREFIX,
          args_prefix: str = DEFAULT_ARGS_PREFIX,
          profile_key: str = DEFAULT_PROFILE_KEY,
          default_profile: str = DEFAULT_PROFILE,
          active_profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
+
+    if paths is None:
+        paths = os.environ.get(f'{env_prefix}PARAMS_FILE')
+        if paths is None:
+            parser = argparse.ArgumentParser(add_help=False)
+            parser.add_argument(f'--{args_prefix}params_file', type=str, required=True)
+            args, _ = parser.parse_known_args()
+            paths = args.__dict__[f'{args_prefix}params_file']
 
     if not isinstance(paths, list):
         paths = [paths]
