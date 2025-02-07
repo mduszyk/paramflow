@@ -84,21 +84,22 @@ def merge(layers: List[Dict[str, any]], default_profile: str, profile: str) -> D
     return profile_params
 
 
-def merge_layers(dst: dict, src: dict) -> dict:
+def merge_layers(dst: dict, src: dict, key='') -> dict:
     for src_key, src_value in src.items():
         if src_key == '__source__':
             if not src_key in dst:
                 dst[src_key] = []
             dst[src_key].extend(src_value)
         elif isinstance(src_value, dict) and isinstance(dst.get(src_key), dict):
-            merge_layers(dst[src_key], src_value)
+            merge_layers(dst[src_key], src_value, f'{key}.{src_key}')
         elif isinstance(src_value, list) and isinstance(dst.get(src_key), list) and len(src_value) == len(dst[src_key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
+                child_key = f'{key}[{i}]'
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    merge_layers(dst_item[i], src_value[i])
+                    merge_layers(dst_item[i], src_value[i], child_key)
                 else:
-                    dst_item[i] = convert_type(dst_item[i], src_value[i])
+                    dst_item[i] = convert_type(dst_item[i], src_value[i], child_key)
         else:
-            dst[src_key] = convert_type(dst.get(src_key), src_value)
+            dst[src_key] = convert_type(dst.get(src_key), src_value, f'{key}.{src_key}')
     return dst
