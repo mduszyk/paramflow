@@ -47,7 +47,7 @@ def load(file: Optional[Union[str, List[str]]] = None,
 
     layers = []
     for path in paths:
-        ext = file.split('.')[-1]
+        ext = path.split('.')[-1]
         parser_class = PARSER_MAP[ext]
         parser = parser_class(path)
         params = parser()

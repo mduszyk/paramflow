@@ -1,6 +1,5 @@
 import json
 import paramflow as pf
 
-# by default load params.toml
-params = pf.load(file='params.toml')
+params = pf.load()
 print(json.dumps(params, indent=4))

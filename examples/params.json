@@ -1,0 +1,11 @@
+{
+  "name": "test",
+  "lr": 0.001,
+  "debug": true,
+  "__source__": [
+    "params.ini"
+  ],
+  "__profile__": [
+    "default"
+  ]
+}

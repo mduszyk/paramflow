@@ -103,13 +103,11 @@ class ArgsParser(Parser):
 
     def __call__(self) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
-        # parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None,
-        #                     help='name of the profile to activate')
         for key, value in self.params.items():
             typ = type(value)
-            if typ is dict or typ is list or typ is bool:
+            if typ is dict or typ is list or typ is bool or value is None:
                 typ = str
-            parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, help=f'{key} = {value}')
+            parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, required=value is None, help=f'{key} = {value}')
         args, _ = parser.parse_known_args()
         args_params = {}
         for arg_key, arg_value in args.__dict__.items():
