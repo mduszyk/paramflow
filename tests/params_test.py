@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from dparams.params import load, merge, recursive_update
+from dparams.params import load, merge, recursive_update, convert_type
 
 
 def test_recursive_update():
@@ -78,3 +78,11 @@ def test_merge_override_layers():
     override_params = {'name': 'test123'}
     params = merge([params], [override_params])
     assert params['name'] == 'test123'
+
+
+def test_convert_type():
+    assert convert_type(3, '10') == 10
+    assert convert_type(3.14, '2.73') == 2.73
+    assert convert_type(False, 'true') == True
+    assert convert_type({}, '{"a": 1, "b": 2}') == {'a': 1, 'b': 2}
+    assert convert_type([], '[1, 2, 3]') == [1, 2, 3]
