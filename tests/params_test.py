@@ -64,6 +64,25 @@ def test_toml_default(temp_file):
     assert params.debug
 
 
+def test_yaml_profile(temp_file):
+    file_content = (
+        """
+        default:
+          name: 'test'
+          lr: 0.001
+          debug: true
+        prod:
+          debug: false
+        """
+    )
+    file_path = temp_file(file_content, '.yaml')
+    sys.argv = ['test.py']
+    params = load(file_path, active_profile='prod')
+    assert params.name == 'test'
+    assert params.lr == 1e-3
+    assert not params.debug
+
+
 def test_merge_profile():
     params = {
         'default': { 'debug': True },
@@ -78,3 +97,22 @@ def test_merge_override_layers():
     override_params = {'name': 'test123'}
     params = merge([params], [override_params])
     assert params['name'] == 'test123'
+
+
+def test_merge_multiple_layers():
+    layer1 = {
+        'default': {'debug': True, 'name': 'Joe', 'age': 20},
+    }
+    layer2 = {
+        'prod': { 'debug': False }
+    }
+    override_layer1 = {
+        'name': 'Jane',
+    }
+    override_layer2 = {
+        'age': 30,
+    }
+    params = merge([layer1, layer2], [override_layer1, override_layer2], active_profile='prod')
+    assert not params['debug']
+    assert params['name'] == 'Jane'
+    assert params['age'] == 30
