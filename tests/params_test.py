@@ -68,7 +68,7 @@ def test_yaml_profile_env_args(temp_file):
     file_content = (
         """
         default:
-          name: 'test'
+          name: 'dev'
           lr: 0.001
           debug: true
         prod:
@@ -77,9 +77,9 @@ def test_yaml_profile_env_args(temp_file):
     )
     file_path = temp_file(file_content, '.yaml')
     os.environ['P_LR'] = '0.0001'
-    sys.argv = ['test.py', '--profile', 'prod', '--name', 'foo']
+    sys.argv = ['test.py', '--profile', 'prod', '--name', 'production']
     params = load(file_path)
-    assert params.name == 'foo'
+    assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
 
