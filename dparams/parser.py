@@ -68,7 +68,8 @@ class ArgsParser(Parser):
 
     def __call__(self) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
-        parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None, help='profile name')
+        parser.add_argument(f'--{self.prefix}{self.profile_key}', type=str, default=None,
+                            help='name of the profile to activate')
         for key, value in self.params.items():
             typ = type(value)
             if typ is dict or typ is list or typ is bool:
