@@ -28,16 +28,19 @@ def load(paths,
         parser_class = parser_map[ext]
         parser = parser_class(path)
         params = parser()
+        params['__source__'] = path
         profiles_params_layers.append(params)
 
     override_params_layers = []
     if env_prefix is not None:
         parser = EnvParser(env_prefix)
         env_params = parser(profiles_params_layers[0])
+        env_params['__source__'] = 'environment'
         override_params_layers.append(env_params)
     if args_prefix is not None:
         parser = ArgsParser(args_prefix, profile_key)
         args_params = parser(profiles_params_layers[0])
+        args_params['__source__'] = 'arguments'
         override_params_layers.append(args_params)
 
     return merge(profiles_params_layers, override_params_layers, profile_key, default_profile, active_profile)
@@ -79,6 +82,11 @@ def recursive_update(dst: dict, src: dict):
                 else:
                     dst_item[i] = convert_type(dst_item[i], src_value[i])
         else:
+            # if key == '__source__':
+            #     if not isinstance(dst[key], list):
+            #         dst[key] = dst[key]
+            #     dst[key].append(src_value)
+            # else:
             dst[key] = convert_type(dst.get(key), src_value)
     return dst
 
@@ -91,7 +99,7 @@ def convert_type(dst_value, src_value):
     if dst_type is dict or dst_type is list:
         if src_type is str:
             return json.loads(src_value)
-        raise ValueError(f'cannot convert {src_type} to {dst_type}')
+        raise TypeError(f'cannot override {src_type} by {dst_type}')
     elif dst_type is bool:
         return src_value.lower() == 'true'
     elif dst_value is None:

@@ -1,5 +1,8 @@
+import os
 import sys
 from tempfile import NamedTemporaryFile
+
+import pytest
 
 from dparams.params import load, merge, recursive_update
 
@@ -17,26 +20,35 @@ def test_recursive_update():
     assert dst['default']['name'] == 'test123'
 
 
-def test_toml_no_profiles():
-    toml_data = (
+@pytest.fixture
+def temp_file(request):
+    def create_temp_file(suffix, content):
+        tmp = NamedTemporaryFile(delete=False, mode='w+', suffix=suffix)
+        tmp.write(content)
+        tmp.close()
+        request.addfinalizer(lambda: os.remove(tmp.name))
+        return tmp.name
+    return create_temp_file
+
+
+def test_toml_no_profiles(temp_file):
+    file_content = (
         """
         name = 'test'
         lr = 1e-3
         debug = true
         """
     )
-    with NamedTemporaryFile(mode='w+', newline='', delete_on_close=False, suffix='.toml') as fp:
-        fp.write(toml_data)
-        fp.close()
-        sys.argv = ['test.py']
-        params = load(fp.name)
+    file_path = temp_file('.toml', file_content)
+    sys.argv = ['test.py']
+    params = load(file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
 
 
-def test_toml_default():
-    toml_data = (
+def test_toml_default(temp_file):
+    file_content = (
         """
         [default]
         name = 'test'
@@ -44,11 +56,9 @@ def test_toml_default():
         debug = true
         """
     )
-    with NamedTemporaryFile(mode='w+', newline='', delete_on_close=False, suffix='.toml') as fp:
-        fp.write(toml_data)
-        fp.close()
-        sys.argv = ['test.py']
-        params = load(fp.name)
+    file_path = temp_file('.toml', file_content)
+    sys.argv = ['test.py']
+    params = load(file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug

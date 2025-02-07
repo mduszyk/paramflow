@@ -7,12 +7,16 @@ def test_freeze():
             'name': 'test',
             'lr': 1e-3,
             'debug': True,
-            'lst': [1, 2, 3]
+            'list': [1, 2, 3],
+            'dict': {'foo': 1, 'bar': 2},
         }
     })
     assert isinstance(params, FrozenAttrDict)
     assert params.default.name == 'test'
     assert params.default.lr == 1e-3
     assert params.default.debug
-    assert isinstance(params.default.lst, FrozenList)
-    assert params.default.lst[0] == 1
+    assert isinstance(params.default.list, FrozenList)
+    assert params.default.list[2] == 3
+    assert isinstance(params.default.dict, FrozenAttrDict)
+    assert params.default.dict.foo == 1
+    assert params.default.dict.bar == 2
