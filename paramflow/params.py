@@ -95,11 +95,11 @@ def merge_layers(dst: dict, src: dict, path='') -> dict:
         elif isinstance(src_value, list) and isinstance(dst.get(src_key), list) and len(src_value) == len(dst[src_key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
-                child_key = f'{path}[{i}]'
+                current_path = f'{path}[{i}]'
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    merge_layers(dst_item[i], src_value[i], child_key)
+                    merge_layers(dst_item[i], src_value[i], current_path)
                 else:
-                    dst_item[i] = convert_type(dst_item[i], src_value[i], child_key)
+                    dst_item[i] = convert_type(dst_item[i], src_value[i], current_path)
         else:
             dst[src_key] = convert_type(dst.get(src_key), src_value, f'{path}.{src_key}')
     return dst
