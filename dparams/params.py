@@ -1,7 +1,7 @@
-import json
 from functools import reduce
 from typing import List, Dict, Optional, Union, Final, Type
 
+from dparams.convert import convert_type
 from dparams.frozen import freeze, FrozenAttrDict
 from dparams.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser
 
@@ -102,20 +102,3 @@ def recursive_update(dst: dict, src: dict) -> dict:
             # else:
             dst[key] = convert_type(dst.get(key), src_value)
     return dst
-
-
-def convert_type(dst_value, src_value):
-    dst_type = type(dst_value)
-    src_type = type(src_value)
-    if dst_type is src_type:
-        return src_value
-    if dst_type is dict or dst_type is list:
-        if src_type is str:
-            return json.loads(src_value)
-        raise TypeError(f'cannot override {src_type} by {dst_type}')
-    elif dst_type is bool:
-        return src_value.lower() == 'true'
-    elif dst_value is None:
-        return src_value
-    else:
-        return dst_type(src_value)
