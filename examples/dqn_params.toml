@@ -1,0 +1,67 @@
+[default]
+gym_env_id = "ALE/Breakout-v5"
+num_episodes = 50_000 # M in the paper
+max_episode_time = 10_000 # T in the paper
+gamma = 0.99
+
+buffer_min_size = 50_000
+buffer_max_size = 1_000_000 # N in the paper
+buffer_compression = true
+
+frames_per_state = 4 # m in the paper
+skip_frames = 4
+noop_max = 30
+
+target_update_freq = 10_000 # C in the paper, measured in the number of sgd steps
+sgd_update_freq = 4
+model_log_freq = 1000
+
+eps_decay_time = 1_000_000 # epsilon decay for epsilon greedy
+eps_start = 1
+eps_end = 0.1
+eps_eval = 0.05
+
+lr = 0.00025
+batch_size = 32
+optimizer_class = 'torch.optim.RMSprop'
+optimizer_kwargs = { momentum = 0.95 }
+
+target = 'dqn_target'
+shared_bias = false  # shared bias in the last layer of the network
+random_seed = 13
+
+
+[dqn-adam]
+lr = 1e-4
+optimizer_class = 'torch.optim.Adam'
+optimizer_kwargs = {}
+
+
+[double-dqn]
+target = 'double_dqn_target'
+
+
+[double-dqn-adam]
+target = 'double_dqn_target'
+lr = 1e-4
+optimizer_class = 'torch.optim.Adam'
+optimizer_kwargs = {}
+
+
+# Tuned version is described in Double DQN paper (Robustness to Human starts).
+[double-dqn-tuned]
+target = 'double_dqn_target'
+target_update_freq = 30_000
+eps_end = 0.01
+shared_bias = true
+
+
+[double-dqn-tuned-adam]
+target = 'double_dqn_target'
+target_update_freq = 30_000
+shared_bias = true
+eps_end = 0.01
+eps_eval = 0.001
+lr = 1e-4
+optimizer_class = 'torch.optim.Adam'
+optimizer_kwargs = {}

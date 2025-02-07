@@ -78,9 +78,11 @@ def merge(layers: List[Dict[str, any]], default_profile: str, profile: str) -> D
     profile_params = params[default_profile]
     if '__source__' in params:
         profile_params['__source__'] = params['__source__']
+    profile_params['__profile__'] = [default_profile]
     if profile != default_profile:
-        active_profile_params = params.get(profile)
+        active_profile_params = params[profile]
         merge_layers(profile_params, active_profile_params)
+        profile_params['__profile__'].append(profile)
     return profile_params
 
 

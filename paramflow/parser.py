@@ -69,11 +69,12 @@ class EnvParser(Parser):
                 key = env_key.replace(self.prefix, '').lower()
                 if key in self.params:
                     env_params[key] = env_value
-        if len(env_params) > 0:
-            env_params['__source__'] = ['environment']
+        result = env_params
         if self.profile is not None:
-            return {self.profile: env_params}
-        return env_params
+            result = {self.profile: env_params}
+        if len(env_params) > 0:
+            result['__source__'] = ['environment']
+        return result
 
 
 class ArgsParser(Parser):
@@ -100,8 +101,9 @@ class ArgsParser(Parser):
             if arg_value is not None:
                 key = arg_key.replace(self.prefix, '')
                 args_params[key] = arg_value
-        if len(args_params) > 0:
-            args_params['__source__'] = ['arguments']
+        result = args_params
         if self.profile is not None:
-            return {self.profile: args_params}
-        return args_params
+            result = {self.profile: args_params}
+        if len(args_params) > 0:
+            result['__source__'] = ['arguments']
+        return result
