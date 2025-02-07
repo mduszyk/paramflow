@@ -9,7 +9,7 @@ from dparams.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsPa
 DEFAULT_ENV_PREFIX: Final[str] = 'P_'
 DEFAULT_ARGS_PREFIX: Final[str] = ''
 DEFAULT_PROFILE: Final[str] = 'default'
-DEFAULT_PROFILE_KEY: Final[str] = 'params_profile'
+DEFAULT_PROFILE_KEY: Final[str] = 'profile'
 
 PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
     'toml': TomlParser,
@@ -45,7 +45,7 @@ def load(paths: Union[str, List[str]],
             params['__source__'] = 'environment'
             overrides_layers.append(params)
     if args_prefix is not None:
-        parser = ArgsParser(args_prefix, profile_key, profiles_layers[0])
+        parser = ArgsParser(args_prefix, profile_key, default_profile, profiles_layers[0])
         params = parser()
         if len(params) > 0:
             params['__source__'] = 'arguments'

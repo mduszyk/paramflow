@@ -64,7 +64,7 @@ def test_toml_default(temp_file):
     assert params.debug
 
 
-def test_yaml_profile(temp_file):
+def test_yaml_profile_env_args(temp_file):
     file_content = (
         """
         default:
@@ -76,10 +76,11 @@ def test_yaml_profile(temp_file):
         """
     )
     file_path = temp_file(file_content, '.yaml')
-    sys.argv = ['test.py']
-    params = load(file_path, active_profile='prod')
-    assert params.name == 'test'
-    assert params.lr == 1e-3
+    os.environ['P_LR'] = '0.0001'
+    sys.argv = ['test.py', '--profile', 'prod', '--name', 'foo']
+    params = load(file_path)
+    assert params.name == 'foo'
+    assert params.lr == 1e-4
     assert not params.debug
 
 
@@ -94,6 +95,13 @@ def test_merge_profile():
 
 def test_merge_override_layers():
     params = {'default': { 'name': 'test' }}
+    override_params = {'name': 'test123'}
+    params = merge([params], [override_params])
+    assert params['name'] == 'test123'
+
+
+def test_merge_no_profiles_override_layers():
+    params = {'name': 'test' }
     override_params = {'name': 'test123'}
     params = merge([params], [override_params])
     assert params['name'] == 'test123'

@@ -61,10 +61,10 @@ class EnvParser(Parser):
 
 class ArgsParser(Parser):
 
-    def __init__(self, prefix: str, profile_key: str, params: Dict[str, any]):
+    def __init__(self, prefix: str, profile_key: str, default_profile: str, params: Dict[str, any]):
         self.prefix = prefix
         self.profile_key = profile_key
-        self.params = params
+        self.params = params.get(default_profile, params)
 
     def __call__(self) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
