@@ -5,8 +5,7 @@ from typing import List, Dict, Optional, Union, Final, Type
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
-from paramflow.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser
-
+from paramflow.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser, IniParser
 
 # defaults
 ENV_PREFIX: Final[str] = 'P_'
@@ -18,6 +17,7 @@ PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
     'toml': TomlParser,
     'yaml': YamlParser,
     'json': JsonParser,
+    'ini': IniParser,
 }
 
 

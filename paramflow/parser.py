@@ -1,4 +1,5 @@
 import argparse
+import configparser
 import json
 import os
 import tomllib
@@ -49,6 +50,20 @@ class JsonParser(Parser):
     def __call__(self) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             params = json.load(fp)
+        if len(params) > 0:
+            params['__source__'] = [self.path]
+        return params
+
+
+class IniParser(Parser):
+
+    def __init__(self, path: str):
+        self.path = path
+
+    def __call__(self):
+        config = configparser.ConfigParser()
+        config.read(self.path)
+        params = {section: dict(config.items(section)) for section in config.sections()}
         if len(params) > 0:
             params['__source__'] = [self.path]
         return params
