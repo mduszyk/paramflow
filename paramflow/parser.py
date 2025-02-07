@@ -3,7 +3,7 @@ import configparser
 import json
 import os
 import tomllib
-from typing import Dict
+from typing import Dict, Final, Type
 
 import yaml
 
@@ -120,3 +120,11 @@ class ArgsParser(Parser):
         if len(args_params) > 0:
             result['__source__'] = ['arguments']
         return result
+
+
+PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
+    'toml': TomlParser,
+    'yaml': YamlParser,
+    'json': JsonParser,
+    'ini': IniParser,
+}

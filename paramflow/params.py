@@ -6,20 +6,14 @@ from typing import List, Dict, Optional, Union, Final, Type
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
-from paramflow.parser import TomlParser, YamlParser, JsonParser, EnvParser, ArgsParser, Parser, IniParser
+from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser
+
 
 # defaults
 ENV_PREFIX: Final[str] = 'P_'
 ARGS_PREFIX: Final[str] = ''
 DEFAULT_PROFILE: Final[str] = 'default'
 PROFILE_KEY: Final[str] = 'profile'
-
-PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
-    'toml': TomlParser,
-    'yaml': YamlParser,
-    'json': JsonParser,
-    'ini': IniParser,
-}
 
 
 def load(file: Optional[Union[str, List[str]]] = None,
