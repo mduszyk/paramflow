@@ -82,6 +82,8 @@ def test_merge_override_layers():
 
 def test_convert_type():
     assert convert_type(3, '10') == 10
+    assert type(convert_type(3.0, 10)) is float
+    assert convert_type(3.0, 10) == 10.0
     assert convert_type(3.14, '2.73') == 2.73
     assert convert_type(False, 'true') == True
     assert convert_type({}, '{"a": 1, "b": 2}') == {'a': 1, 'b': 2}
