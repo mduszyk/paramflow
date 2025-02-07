@@ -21,7 +21,7 @@ PARSER_MAP: Final[Dict[str, Type[Parser]]] = {
 }
 
 
-def load(path: Optional[Union[str, List[str]]] = None,
+def load(file: Optional[Union[str, List[str]]] = None,
          env_prefix: str = ENV_PREFIX,
          args_prefix: str = ARGS_PREFIX,
          profile_key: str = PROFILE_KEY,
@@ -29,7 +29,7 @@ def load(path: Optional[Union[str, List[str]]] = None,
          profile: Optional[str] = DEFAULT_PROFILE) -> FrozenAttrDict[str, any]:
 
     meta = {
-        'path': path,
+        'file': file,
         'env_prefix': env_prefix,
         'args_prefix': args_prefix,
         'profile_key': profile_key,
@@ -41,13 +41,13 @@ def load(path: Optional[Union[str, List[str]]] = None,
     layers = [meta, meta_env_parser(), meta_args_parser()]
     meta = freeze(reduce(merge_layers, layers, {}))
 
-    paths = meta.path
+    paths = meta.file
     if not isinstance(paths, list):
         paths = [paths]
 
     layers = []
     for path in paths:
-        ext = path.split('.')[-1]
+        ext = file.split('.')[-1]
         parser_class = PARSER_MAP[ext]
         parser = parser_class(path)
         params = parser()

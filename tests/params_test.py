@@ -41,7 +41,7 @@ def test_toml_no_profiles(temp_file):
     )
     file_path = temp_file(file_content, '.toml')
     sys.argv = ['test.py']
-    params = load(path=file_path)
+    params = load(file=file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -58,7 +58,7 @@ def test_toml_default(temp_file):
     )
     file_path = temp_file(file_content, '.toml')
     sys.argv = ['test.py']
-    params = load(path=file_path)
+    params = load(file=file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -78,7 +78,7 @@ def test_yaml_profile_env_args(temp_file):
     file_path = temp_file(file_content, '.yaml')
     os.environ['P_LR'] = '0.0001'
     sys.argv = ['test.py', '--profile', 'prod', '--name', 'production']
-    params = load(path=file_path)
+    params = load(file=file_path)
     assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
