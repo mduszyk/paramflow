@@ -82,6 +82,7 @@ def test_yaml_profile_env_args(temp_file):
     assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
+    assert params.__source__ == [file_path, 'environment', 'arguments']
 
 
 def test_merge_profile():
