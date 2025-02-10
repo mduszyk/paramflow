@@ -16,7 +16,7 @@ parameter file and allows for easy parameter overrides.
 ## Usage
 ```python
 import paramflow as pf
-params = pf.load('params.toml')
+params = pf.load(file='params.toml')
 print(params.learning_rate)
 ```
 
