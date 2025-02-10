@@ -4,10 +4,10 @@ import json
 import os
 import tomllib
 from typing import Dict, Final, Type
+from abc import ABC, abstractmethod
 
 import yaml
-
-from abc import ABC, abstractmethod
+from dotenv import dotenv_values
 
 
 class Parser(ABC):
@@ -69,13 +69,28 @@ class IniParser(Parser):
         return params
 
 
+class DotEnvParser(Parser):
+
+    def __init__(self, path: str, target_profile: str = None):
+        self.path = path
+        self.target_profile = target_profile
+
+    def __call__(self):
+        params = dotenv_values(self.path)
+        if self.target_profile is not None:
+            result = {self.target_profile: env_params}
+        if len(params) > 0:
+            params['__source__'] = [self.path]
+        return params
+
+
 class EnvParser(Parser):
 
-    def __init__(self, prefix: str, params: Dict[str, any], default_profile, profile=None):
+    def __init__(self, prefix: str, params: Dict[str, any], default_profile, target_profile=None):
         self.prefix = prefix
         self.params = params
         self.params = params.get(default_profile, params)
-        self.profile = profile
+        self.target_profile = target_profile
 
     def __call__(self) -> Dict[str, any]:
         env_params = {}
@@ -85,8 +100,8 @@ class EnvParser(Parser):
                 if key in self.params:
                     env_params[key] = env_value
         result = env_params
-        if self.profile is not None:
-            result = {self.profile: env_params}
+        if self.target_profile is not None:
+            result = {self.target_profile: env_params}
         if len(env_params) > 0:
             result['__source__'] = ['environment']
         return result
@@ -95,11 +110,11 @@ class EnvParser(Parser):
 class ArgsParser(Parser):
 
     def __init__(self, prefix: str, profile_key: str, default_profile: str,
-                 params: Dict[str, any], profile=None):
+                 params: Dict[str, any], target_profile=None):
         self.prefix = prefix
         self.profile_key = profile_key
         self.params = params.get(default_profile, params)
-        self.profile = profile
+        self.target_profile = target_profile
 
     def __call__(self) -> Dict[str, any]:
         parser = argparse.ArgumentParser()
@@ -115,8 +130,8 @@ class ArgsParser(Parser):
                 key = arg_key.replace(self.prefix, '')
                 args_params[key] = arg_value
         result = args_params
-        if self.profile is not None:
-            result = {self.profile: args_params}
+        if self.target_profile is not None:
+            result = {self.target_profile: args_params}
         if len(args_params) > 0:
             result['__source__'] = ['arguments']
         return result

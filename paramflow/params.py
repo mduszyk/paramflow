@@ -6,8 +6,7 @@ from typing import List, Dict, Optional, Union, Final, Type
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
-from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser
-
+from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser
 
 # defaults
 ENV_PREFIX: Final[str] = 'P_'
@@ -21,7 +20,8 @@ def load(file: Optional[Union[str, List[str]]] = None,
          args_prefix: str = ARGS_PREFIX,
          profile_key: str = PROFILE_KEY,
          default_profile: str = DEFAULT_PROFILE,
-         profile: Optional[str] = DEFAULT_PROFILE) -> FrozenAttrDict[str, any]:
+         profile: Optional[str] = DEFAULT_PROFILE,
+         dot_env_file: Optional[str] = None) -> FrozenAttrDict[str, any]:
 
     meta = {
         'file': file,
@@ -30,6 +30,7 @@ def load(file: Optional[Union[str, List[str]]] = None,
         'profile_key': profile_key,
         'default_profile': default_profile,
         profile_key: profile,
+        'dot_env_file': dot_env_file,
     }
     meta_env_parser = EnvParser(ENV_PREFIX, meta, DEFAULT_PROFILE)
     meta_args_parser = ArgsParser(ARGS_PREFIX, PROFILE_KEY, DEFAULT_PROFILE, meta)
@@ -53,15 +54,21 @@ def load(file: Optional[Union[str, List[str]]] = None,
             params = {meta.default_profile: params}
         layers.append(params)
 
+    if meta.dot_env_file is not None:
+        parser = DotEnvParser(self, meta.dot_env_file, target_profile=meta.profile)
+        params = parser()
+        if len(params) > 0:
+            layers.append(params)
+
     if meta.env_prefix is not None:
-        parser = EnvParser(meta.env_prefix, layers[0], meta.default_profile, profile=meta.profile)
+        parser = EnvParser(meta.env_prefix, layers[0], meta.default_profile, target_profile=meta.profile)
         params = parser()
         if len(params) > 0:
             layers.append(params)
 
     if meta.args_prefix is not None:
         parser = ArgsParser(meta.args_prefix, meta.profile_key, meta.default_profile,
-                            layers[0], profile=meta.profile)
+                            layers[0], target_profile=meta.profile)
         params = parser()
         if len(params) > 0:
             layers.append(params)
