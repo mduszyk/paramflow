@@ -54,6 +54,11 @@ class FrozenList(list):
 
 
 def freeze(params: Union[List[any], Dict[str, any]]) -> Union[FrozenList[any], FrozenAttrDict[str, any]]:
+    """
+    Recursively freeze dictionaries and list making them read-only. Frozen dict profides attribute-style access.
+    :param params: parameters as python dict and list tree
+    :return: frozen parameters
+    """
     if isinstance(params, dict):
         for key, value in params.items():
             if isinstance(value, dict) or isinstance(value, list):
