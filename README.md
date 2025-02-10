@@ -1,30 +1,31 @@
 # paramflow
-Parameter/configuration library motivated by the usecase of training ML models
-with multple sets of hyperparameters (profiles). The goal is to make it easy to
-use and flexible. Generate cmd arg parser based on the params from the firs file.
-Allow for easy owerwriting of params.
+A parameter and configuration management library motivated by training machine learning models
+and managing configuration for applications that require profiles and layered parameters.
+```paramflow``` is designed for flexibility and ease of use, enabling seamless parameter merging
+from multiple sources. It also auto-generates a command-line argument parser based on the first
+parameter file and allows for easy parameter overrides.
 
-## Features:
-- layered parameters (files, environment, cmd args)
-- python frozen dictionary with attribute access
-- support for parameter profiles
-- metaparameters also layered (parameters to paramflow load)
+## Features
+- **Layered configuration**: Merge parameters from files, environment variables, and command-line arguments.
+- **Immutable dictionary**: Provides a read-only dictionary with attribute-style access.
+- **Profile support**: Manage multiple sets of parameters.
+- **Layered metaparameters**: ```paramflow``` loads its own configuration using layered approach.
 
+## Usage
 ```python
 import paramflow as pf
 params = pf.load('params.toml')
+print(params.learning_rate)
 ```
 
-## Metaparameters
-Parameters to ```paramflow.load``` can be layered too.
+### Metaparameter Layering (Controls paramflow.load)
+1. ```paramflow.load(...)``` arguments
+2. Environment variables
+3. Command-line arguments (via argparse)
 
-### Metaparameters Layereing
-1. ```paramflow.load``` function arguments
-2. environment variables
-3. argparse
-
-## Parameters Layereing
-1. Files (toml, yaml, ini, json)
+## Parameter Layering
+1. Configuration files (```.toml```, ```.yaml```, ```.ini```, ```.json```)
 2. ```.env``` file (disabled by default)
-3. Environment (env vars with a prefix)
-4. argparse
+3. Environment variables (with a specified prefix)
+4. Command-line arguments (via ```argparse```)
+ 
