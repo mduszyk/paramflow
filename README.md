@@ -10,8 +10,8 @@ parameter file and allows for easy parameter overrides.
 - **Immutable dictionary**: Provides a read-only dictionary with attribute-style access.
 - **Profile support**: Manage multiple sets of parameters. Layer the chosen profile on top of the default profile.
 - **Layered metaparameters**: ```paramflow``` loads its own configuration using layered approach.
-- **Convert types**: Use first params file as a reference for type conversions.
-- **Generate arg parser**: Use first params file as a reference for generating ```argparse``` parser.
+- **Convert types**: Use first parameters file as a reference for type conversions.
+- **Generate arg parser**: Use first parameters file as a reference for generating ```argparse``` parser.
 
 ## Usage
 ```python
