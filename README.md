@@ -8,7 +8,7 @@ parameter file and allows for easy parameter overrides.
 ## Features
 - **Layered configuration**: Merge parameters from files, environment variables, and command-line arguments.
 - **Immutable dictionary**: Provides a read-only dictionary with attribute-style access.
-- **Profile support**: Manage multiple sets of parameters.
+- **Profile support**: Manage multiple sets of parameters. Layer the chosen profile on top of the default profile.
 - **Layered metaparameters**: ```paramflow``` loads its own configuration using layered approach.
 
 ## Usage

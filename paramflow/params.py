@@ -23,7 +23,8 @@ def load(file: Optional[Union[str, List[str]]] = None,
          profile: Optional[str] = DEFAULT_PROFILE,
          dot_env_file: Optional[str] = None) -> FrozenAttrDict[str, any]:
     """
-    Load parameters.
+    Load parameters form multiple sources, layer them on top of each other and activate profile.
+    Activation of profile means learying it on top of the default profile.
     :param file: file or multiple files to load parameters from
     :param env_prefix: prefix for env vars that are used to overwrite params
     :param args_prefix: prefix for command-line arguments
@@ -31,7 +32,7 @@ def load(file: Optional[Union[str, List[str]]] = None,
     :param default_profile: default profile
     :param profile: profile to activate
     :param dot_env_file: file containing environment variables usually '.env'
-    :return:
+    :return: read-only parameters as frozen dict
     """
 
     meta = {
