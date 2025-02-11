@@ -1,11 +1,13 @@
 import os
 import sys
+from copy import copy
 from functools import reduce
 from tempfile import NamedTemporaryFile
 
 import pytest
 
-from paramflow.params import load, activate_profile, deep_merge
+import paramflow as pf
+from paramflow.params import activate_profile, deep_merge
 
 
 def test_merge_layers():
@@ -62,7 +64,7 @@ def temp_file(request):
     return create_temp_file
 
 
-def test_toml_no_profiles(temp_file):
+def test_toml_no_profiles(temp_file, monkeypatch):
     file_content = (
         """
         name = 'test'
@@ -71,14 +73,14 @@ def test_toml_no_profiles(temp_file):
         """
     )
     file_path = temp_file(file_content, '.toml')
-    sys.argv = ['test.py']
-    params = load(source=file_path)
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(source=file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
 
 
-def test_toml_default(temp_file):
+def test_toml_default(temp_file, monkeypatch):
     file_content = (
         """
         [default]
@@ -88,14 +90,14 @@ def test_toml_default(temp_file):
         """
     )
     file_path = temp_file(file_content, '.toml')
-    sys.argv = ['test.py']
-    params = load(source=file_path)
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(source=file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
 
 
-def test_yaml_profile_env_args(temp_file):
+def test_yaml_profile_env_args(temp_file, monkeypatch):
     file_content = (
         """
         default:
@@ -107,24 +109,24 @@ def test_yaml_profile_env_args(temp_file):
         """
     )
     file_path = temp_file(file_content, '.yaml')
-    os.environ['P_LR'] = '0.0001'
-    sys.argv = ['test.py', '--profile', 'prod', '--name', 'production']
-    params = load(source=file_path)
+    monkeypatch.setenv('P_LR', '0.0001')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--profile', 'prod', '--name', 'production'])
+    params = pf.load(source=file_path)
     assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
     assert params.__source__ == [file_path, 'env', 'args']
 
 
-def test_load_all_layers(temp_file):
+def test_load_all_layers(temp_file, monkeypatch):
     file1 = temp_file("default:\n  lr: 0.001", '.yaml')
     file2 = temp_file("[default]\nname = 'dev'", '.ini')
     file3 = temp_file('[default]\ndebug = true\nbatch_size=32', '.toml')
     file4 = temp_file('{"prod": {"debug": false}}', '.json')
     file5 = temp_file('P_NAME=production', '.env')
-    os.environ['P_LR'] = '0.0001'
-    sys.argv = ['test.py', '--profile', 'prod', '--batch_size', '64']
-    params = load(source=[file1, file2, file3, file4, file5])
+    monkeypatch.setenv('P_LR', '0.0001')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--profile', 'prod', '--batch_size', '64'])
+    params = pf.load(source=[file1, file2, file3, file4, file5])
     assert params.name == 'production'
     assert params.lr == 0.0001
     assert params.batch_size == 64
@@ -133,15 +135,26 @@ def test_load_all_layers(temp_file):
     assert params.__profile__ == ['default', 'prod']
 
 
-def test_custom_merge_order(temp_file):
+def test_custom_merge_order(temp_file, monkeypatch):
     file_toml = temp_file('[default]\nname = "local"\ndebug = true\nbatch_size=32', '.toml')
     dot_env = temp_file('P_NAME=prod', '.env')
-    os.environ['P_NAME'] = 'dev'
-    sys.argv = ['test.py', '--batch_size', '64']
+    monkeypatch.setenv('P_NAME', 'dev')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64'])
     source = [file_toml, 'env', dot_env, 'args']
-    params = load(source=source)
+    params = pf.load(source=source)
     assert params.name == 'prod'
     assert params.batch_size == 64
     assert params.debug
     assert params.__source__ == source
+    assert params.__profile__ == ['default']
+
+
+def test_specify_file_via_cmd(temp_file, monkeypatch):
+    file_toml = temp_file('[default]\nname = "dev"\ndebug = true\nbatch_size=32', '.toml')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--source', file_toml])
+    params = pf.load()
+    assert params.name == 'dev'
+    assert params.batch_size == 32
+    assert params.debug
+    assert params.__source__ == [file_toml]
     assert params.__profile__ == ['default']
