@@ -113,7 +113,7 @@ def test_yaml_profile_env_args(temp_file):
     assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
-    assert params.__source__ == [file_path, 'environment', 'arguments']
+    assert params.__source__ == [file_path, 'env', 'args']
 
 
 def test_load_all_layers(temp_file):
@@ -129,5 +129,19 @@ def test_load_all_layers(temp_file):
     assert params.lr == 0.0001
     assert params.batch_size == 64
     assert not params.debug
-    assert params.__source__ == [file1, file2, file3, file4, file5, 'environment', 'arguments']
+    assert params.__source__ == [file1, file2, file3, file4, file5, 'env', 'args']
     assert params.__profile__ == ['default', 'prod']
+
+
+def test_custom_merge_order(temp_file):
+    file_toml = temp_file('[default]\nname = "local"\ndebug = true\nbatch_size=32', '.toml')
+    dot_env = temp_file('P_NAME=prod', '.env')
+    os.environ['P_NAME'] = 'dev'
+    sys.argv = ['test.py', '--batch_size', '64']
+    source = [file_toml, 'env', dot_env, 'args']
+    params = load(source=source)
+    assert params.name == 'prod'
+    assert params.batch_size == 64
+    assert params.debug
+    assert params.__source__ == source
+    assert params.__profile__ == ['default']

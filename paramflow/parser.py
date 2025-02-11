@@ -78,14 +78,16 @@ class DotEnvParser(Parser):
         self.target_profile = target_profile
 
     def __call__(self, params):
+        if self.target_profile is None and self.default_profile in params:
+            self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
         env = dotenv_values(self.path)
         params = get_env_params(env, self.prefix, params)
         if self.target_profile is not None:
-            result = {self.target_profile: params}
+            params = {self.target_profile: params}
         if len(params) > 0:
-            result['__source__'] = [self.path]
-        return result
+            params['__source__'] = [self.path]
+        return params
 
 
 def get_env_params(env, prefix, ref_params):
@@ -106,13 +108,15 @@ class EnvParser(Parser):
         self.target_profile = target_profile
 
     def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+        if self.target_profile is None and self.default_profile in params:
+            self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
         env_params = get_env_params(os.environ, self.prefix, params)
         result = env_params
         if self.target_profile is not None:
             result = {self.target_profile: env_params}
         if len(env_params) > 0:
-            result['__source__'] = ['environment']
+            result['__source__'] = ['env']
         return result
 
 
@@ -124,6 +128,8 @@ class ArgsParser(Parser):
         self.target_profile = target_profile
 
     def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+        if self.target_profile is None and self.default_profile in params:
+            self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
         parser = argparse.ArgumentParser()
         for key, value in params.items():
@@ -141,7 +147,7 @@ class ArgsParser(Parser):
         if self.target_profile is not None:
             result = {self.target_profile: args_params}
         if len(args_params) > 0:
-            result['__source__'] = ['arguments']
+            result['__source__'] = ['args']
         return result
 
 
