@@ -47,24 +47,24 @@ def load(file: Optional[Union[str, List[str]]] = None,
     meta_env_parser = EnvParser(ENV_PREFIX, meta, DEFAULT_PROFILE)
     meta_args_parser = ArgsParser(ARGS_PREFIX, PROFILE_KEY, DEFAULT_PROFILE, meta)
     layers = [meta, meta_env_parser(), meta_args_parser()]
-    meta = freeze(reduce(merge_layers, layers, {}))
+    meta = freeze(reduce(deep_merge, layers, {}))
 
     if meta.file is None:
         sys.exit('file meta param is missing')
 
-    paths = meta.file
-    if not isinstance(paths, list):
-        paths = [paths]
+    sources = meta.file
+    if not isinstance(sources, list):
+        sources = [sources]
 
     layers = []
-    for path in paths:
-        ext = path.split('.')[-1]
+    for source in sources:
+        ext = source.split('.')[-1]
         parser_class = PARSER_MAP[ext]
-        parser = parser_class(path)
+        parser = parser_class(source)
         params = parser()
         layers.append(params)
 
-    params = reduce(merge_layers, layers, {})
+    params = reduce(deep_merge, layers, {})
     if not meta.default_profile in params:
         params = {meta.default_profile: params}
     layers = [params]
@@ -88,38 +88,38 @@ def load(file: Optional[Union[str, List[str]]] = None,
         if len(params) > 0:
             layers.append(params)
 
-    params = merge(layers, meta.default_profile, meta.profile)
+    params = reduce(deep_merge, layers, {})
+    params = activate_profile(params, meta.default_profile, meta.profile)
 
     return freeze(params)
 
 
-def merge(layers: List[Dict[str, any]], default_profile: str, profile: str) -> Dict[str, any]:
-    params = reduce(merge_layers, layers, {})
+def activate_profile(params: Dict[str, any], default_profile: str, profile: str) -> Dict[str, any]:
     profile_params = params[default_profile]
     if '__source__' in params:
         profile_params['__source__'] = params['__source__']
     profile_params['__profile__'] = [default_profile]
     if profile != default_profile:
         active_profile_params = params[profile]
-        merge_layers(profile_params, active_profile_params)
+        deep_merge(profile_params, active_profile_params)
         profile_params['__profile__'].append(profile)
     return profile_params
 
 
-def merge_layers(dst: dict, src: dict, path='') -> dict:
+def deep_merge(dst: dict, src: dict, path='') -> dict:
     for src_key, src_value in src.items():
         if src_key == '__source__':
             if not src_key in dst:
                 dst[src_key] = []
             dst[src_key].extend(src_value)
         elif isinstance(src_value, dict) and isinstance(dst.get(src_key), dict):
-            merge_layers(dst[src_key], src_value, f'{path}.{src_key}')
+            deep_merge(dst[src_key], src_value, f'{path}.{src_key}')
         elif isinstance(src_value, list) and isinstance(dst.get(src_key), list) and len(src_value) == len(dst[src_key]):
             for i in range(len(src_value)):
                 dst_item = dst[i]
                 current_path = f'{path}[{i}]'
                 if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    merge_layers(dst_item[i], src_value[i], current_path)
+                    deep_merge(dst_item[i], src_value[i], current_path)
                 else:
                     dst_item[i] = convert_type(dst_item[i], src_value[i], current_path)
         else:

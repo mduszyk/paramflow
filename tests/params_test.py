@@ -1,10 +1,11 @@
 import os
 import sys
+from functools import reduce
 from tempfile import NamedTemporaryFile
 
 import pytest
 
-from paramflow.params import load, merge, merge_layers
+from paramflow.params import load, activate_profile, deep_merge
 
 
 def test_merge_layers():
@@ -16,32 +17,35 @@ def test_merge_layers():
         }
     }
     src = {'default': {'name': 'test123'}}
-    merge_layers(dst, src)
+    deep_merge(dst, src)
     assert dst['default']['name'] == 'test123'
 
 
-def test_merge_profile():
+def test_activate_profile():
     params = {
         'default': { 'debug': True },
         'prod': { 'debug': False }
     }
-    params = merge([params], 'default', 'prod')
+    params = activate_profile(params, 'default', 'prod')
     assert not params['debug']
 
 
 def test_merge_override_layers():
     params = {'default': { 'name': 'test' }}
     overrides = {'default': {'name': 'test123'}}
-    params = merge([params, overrides], 'default', 'default')
+    params = reduce(deep_merge, [params, overrides])
+    params = activate_profile(params, 'default', 'default')
     assert params['name'] == 'test123'
 
 
-def test_merge_multiple_layers():
+def test_merge_multiple_layers_and_activate():
     layer1 = {'default': {'debug': True, 'name': 'Joe', 'age': 20}}
     layer2 = {'prod': { 'debug': False }}
     layer3 = {'prod': {'name': 'Jane'}}
     layer4 = {'prod': {'age': 30}}
-    params = merge([layer1, layer2, layer3, layer4], 'default', 'prod')
+    layers = [layer1, layer2, layer3, layer4]
+    params = reduce(deep_merge, layers)
+    params = activate_profile(params, 'default', 'prod')
     assert not params['debug']
     assert params['name'] == 'Jane'
     assert params['age'] == 30
