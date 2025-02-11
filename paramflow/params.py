@@ -15,91 +15,82 @@ DEFAULT_PROFILE: Final[str] = 'default'
 PROFILE_KEY: Final[str] = 'profile'
 
 
-def load(file: Optional[Union[str, List[str]]] = None,
+def load(source: Optional[Union[str, List[str]]] = None,
          env_prefix: str = ENV_PREFIX,
          args_prefix: str = ARGS_PREFIX,
          profile_key: str = PROFILE_KEY,
          default_profile: str = DEFAULT_PROFILE,
-         profile: Optional[str] = DEFAULT_PROFILE,
-         dot_env_file: Optional[str] = None) -> FrozenAttrDict[str, any]:
+         profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
     """
     Load parameters form multiple sources, layer them on top of each other and activate profile.
     Activation of profile means learying it on top of the default profile.
-    :param file: file or multiple files to load parameters from
+    :param source: file or multiple files to load parameters from
     :param env_prefix: prefix for env vars that are used to overwrite params
     :param args_prefix: prefix for command-line arguments
     :param profile_key: parameter name for the profile
     :param default_profile: default profile
     :param profile: profile to activate
-    :param dot_env_file: file containing environment variables usually '.env'
     :return: read-only parameters as frozen dict
     """
 
     meta = {
-        'file': file,
+        'source': source,
         'env_prefix': env_prefix,
         'args_prefix': args_prefix,
         'profile_key': profile_key,
         'default_profile': default_profile,
         profile_key: profile,
-        'dot_env_file': dot_env_file,
     }
-    meta_env_parser = EnvParser(ENV_PREFIX, meta, DEFAULT_PROFILE)
-    meta_args_parser = ArgsParser(ARGS_PREFIX, PROFILE_KEY, DEFAULT_PROFILE, meta)
-    layers = [meta, meta_env_parser(), meta_args_parser()]
-    meta = freeze(reduce(deep_merge, layers, {}))
+    meta_env_parser = EnvParser(ENV_PREFIX, DEFAULT_PROFILE)
+    meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE)
+    meta = deep_merge(meta, meta_env_parser(meta))
+    meta = deep_merge(meta, meta_args_parser(meta))
+    meta = freeze(meta)
 
-    if meta.file is None:
+    if meta.source is None:
         sys.exit('file meta param is missing')
 
-    sources = meta.file
-    if not isinstance(sources, list):
-        sources = [sources]
+    sources = list(meta.source) if isinstance(meta.source, list) else [meta.source]
+    sources.append('env')
+    sources.append('args')
+    parsers = build_parsers(sources, meta)
 
-    layers = []
-    for source in sources:
-        ext = source.split('.')[-1]
-        parser_class = PARSER_MAP[ext]
-        parser = parser_class(source)
-        params = parser()
-        layers.append(params)
+    return parse(parsers, meta.default_profile, meta.profile)
 
-    params = reduce(deep_merge, layers, {})
-    if not meta.default_profile in params:
-        params = {meta.default_profile: params}
-    layers = [params]
 
-    if meta.dot_env_file is not None:
-        parser = DotEnvParser(meta.dot_env_file, meta.env_prefix, layers[0], meta.default_profile, target_profile=meta.profile)
-        params = parser()
-        if len(params) > 0:
-            layers.append(params)
-
-    if meta.env_prefix is not None:
-        parser = EnvParser(meta.env_prefix, layers[0], meta.default_profile, target_profile=meta.profile)
-        params = parser()
-        if len(params) > 0:
-            layers.append(params)
-
-    if meta.args_prefix is not None:
-        parser = ArgsParser(meta.args_prefix, meta.profile_key, meta.default_profile,
-                            layers[0], target_profile=meta.profile)
-        params = parser()
-        if len(params) > 0:
-            layers.append(params)
-
-    params = reduce(deep_merge, layers, {})
-    params = activate_profile(params, meta.default_profile, meta.profile)
-
+def parse(parsers, default_profile, target_profile):
+    params = {}
+    for parser in parsers:
+        params = deep_merge(params, parser(params))
+    params = activate_profile(params, default_profile, target_profile)
     return freeze(params)
 
 
+def build_parsers(sources, meta):
+    parsers = []
+    for source in sources:
+        if source == 'args':
+            parser = ArgsParser(meta.args_prefix, meta.default_profile, meta.profile)
+        elif source == 'env':
+            parser = EnvParser(meta.env_prefix, meta.default_profile, meta.profile)
+        elif source.endswith('.env'):
+            parser = DotEnvParser(source, meta.env_prefix, meta.default_profile, meta.profile)
+        else:
+            ext = source.split('.')[-1]
+            parser_class = PARSER_MAP[ext]
+            parser = parser_class(source)
+        parsers.append(parser)
+    return parsers
+
+
 def activate_profile(params: Dict[str, any], default_profile: str, profile: str) -> Dict[str, any]:
-    profile_params = params[default_profile]
+    profile_params = params.get(default_profile)
+    if profile_params is None:
+        profile_params = params  # profiles disabled
     if '__source__' in params:
         profile_params['__source__'] = params['__source__']
     profile_params['__profile__'] = [default_profile]
-    if profile != default_profile:
+    if profile is not None and profile != default_profile:
         active_profile_params = params[profile]
         deep_merge(profile_params, active_profile_params)
         profile_params['__profile__'].append(profile)

@@ -12,7 +12,7 @@ from dotenv import dotenv_values
 
 class Parser(ABC):
     @abstractmethod
-    def __call__(self) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, any]:
         pass
 
 
@@ -21,7 +21,7 @@ class TomlParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, any]:
         with open(self.path, 'rb') as fp:
             params = tomllib.load(fp)
         if len(params) > 0:
@@ -34,7 +34,7 @@ class YamlParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             params = yaml.safe_load(fp)
         if len(params) > 0:
@@ -47,7 +47,7 @@ class JsonParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, any]:
         with open(self.path, 'r') as fp:
             params = json.load(fp)
         if len(params) > 0:
@@ -60,7 +60,7 @@ class IniParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self):
+    def __call__(self, *args):
         config = configparser.ConfigParser()
         config.read(self.path)
         params = {section: dict(config.items(section)) for section in config.sections()}
@@ -71,15 +71,16 @@ class IniParser(Parser):
 
 class DotEnvParser(Parser):
 
-    def __init__(self, path: str, prefix: str, params, default_profile, target_profile: str = None):
+    def __init__(self, path: str, prefix: str, default_profile, target_profile: str = None):
         self.path = path
         self.prefix = prefix
-        self.params = params.get(default_profile, params)
+        self.default_profile = default_profile
         self.target_profile = target_profile
 
-    def __call__(self):
+    def __call__(self, params):
+        params = params.get(self.default_profile, params)
         env = dotenv_values(self.path)
-        params = get_env_params(env, self.prefix, self.params)
+        params = get_env_params(env, self.prefix, params)
         if self.target_profile is not None:
             result = {self.target_profile: params}
         if len(params) > 0:
@@ -99,14 +100,14 @@ def get_env_params(env, prefix, ref_params):
 
 class EnvParser(Parser):
 
-    def __init__(self, prefix: str, params: Dict[str, any], default_profile, target_profile=None):
+    def __init__(self, prefix: str, default_profile: str, target_profile: str = None):
         self.prefix = prefix
-        self.params = params
-        self.params = params.get(default_profile, params)
+        self.default_profile = default_profile
         self.target_profile = target_profile
 
-    def __call__(self) -> Dict[str, any]:
-        env_params = get_env_params(os.environ, self.prefix, self.params)
+    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+        params = params.get(self.default_profile, params)
+        env_params = get_env_params(os.environ, self.prefix, params)
         result = env_params
         if self.target_profile is not None:
             result = {self.target_profile: env_params}
@@ -117,16 +118,15 @@ class EnvParser(Parser):
 
 class ArgsParser(Parser):
 
-    def __init__(self, prefix: str, profile_key: str, default_profile: str,
-                 params: Dict[str, any], target_profile=None):
+    def __init__(self, prefix: str, default_profile: str, target_profile: str = None):
         self.prefix = prefix
-        self.profile_key = profile_key
-        self.params = params.get(default_profile, params)
+        self.default_profile = default_profile
         self.target_profile = target_profile
 
-    def __call__(self) -> Dict[str, any]:
+    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+        params = params.get(self.default_profile, params)
         parser = argparse.ArgumentParser()
-        for key, value in self.params.items():
+        for key, value in params.items():
             typ = type(value)
             if typ is dict or typ is list or typ is bool or value is None:
                 typ = str

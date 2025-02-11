@@ -72,7 +72,7 @@ def test_toml_no_profiles(temp_file):
     )
     file_path = temp_file(file_content, '.toml')
     sys.argv = ['test.py']
-    params = load(file=file_path)
+    params = load(source=file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -89,7 +89,7 @@ def test_toml_default(temp_file):
     )
     file_path = temp_file(file_content, '.toml')
     sys.argv = ['test.py']
-    params = load(file=file_path)
+    params = load(source=file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -109,7 +109,7 @@ def test_yaml_profile_env_args(temp_file):
     file_path = temp_file(file_content, '.yaml')
     os.environ['P_LR'] = '0.0001'
     sys.argv = ['test.py', '--profile', 'prod', '--name', 'production']
-    params = load(file=file_path)
+    params = load(source=file_path)
     assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
@@ -124,7 +124,7 @@ def test_load_all_layers(temp_file):
     file5 = temp_file('P_NAME=production', '.env')
     os.environ['P_LR'] = '0.0001'
     sys.argv = ['test.py', '--profile', 'prod', '--batch_size', '64']
-    params = load(file=[file1, file2, file3, file4], dot_env_file=file5)
+    params = load(source=[file1, file2, file3, file4, file5])
     assert params.name == 'production'
     assert params.lr == 0.0001
     assert params.batch_size == 64

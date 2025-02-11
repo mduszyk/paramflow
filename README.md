@@ -14,9 +14,10 @@ parameter file and allows for easy parameter overrides.
 - **Generate arg parser**: Use first parameters file as a reference for generating ```argparse``` parser.
 
 ## Usage
+
 ```python
 import paramflow as pf
-params = pf.load(file='dqn_params.toml')
+params = pf.load(source='dqn_params.toml')
 print(params.lr)
 ```
 
