@@ -13,6 +13,8 @@ ENV_PREFIX: Final[str] = 'P_'
 ARGS_PREFIX: Final[str] = ''
 DEFAULT_PROFILE: Final[str] = 'default'
 PROFILE_KEY: Final[str] = 'profile'
+ENV_SOURCE: Final[str] = 'env'
+ARGS_SOURCE: Final[str] = 'args'
 
 
 def load(source: Optional[Union[str, List[str]]] = None,
@@ -51,8 +53,10 @@ def load(source: Optional[Union[str, List[str]]] = None,
         sys.exit('file meta param is missing')
 
     sources = list(meta.source) if isinstance(meta.source, list) else [meta.source]
-    sources.append('env')
-    sources.append('args')
+    if ENV_SOURCE not in sources and meta.env_prefix is not None:
+        sources.append(ENV_SOURCE)
+    if ARGS_SOURCE not in sources and meta.args_prefix is not None:
+        sources.append(ARGS_SOURCE)
     parsers = build_parsers(sources, meta)
 
     return parse(parsers, meta.default_profile, meta.profile)
@@ -69,9 +73,9 @@ def parse(parsers, default_profile, target_profile):
 def build_parsers(sources, meta):
     parsers = []
     for source in sources:
-        if source == 'args':
+        if source == ARGS_SOURCE:
             parser = ArgsParser(meta.args_prefix, meta.default_profile, meta.profile)
-        elif source == 'env':
+        elif source == ENV_SOURCE:
             parser = EnvParser(meta.env_prefix, meta.default_profile, meta.profile)
         elif source.endswith('.env'):
             parser = DotEnvParser(source, meta.env_prefix, meta.default_profile, meta.profile)
