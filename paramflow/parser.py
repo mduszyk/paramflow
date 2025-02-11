@@ -71,17 +71,30 @@ class IniParser(Parser):
 
 class DotEnvParser(Parser):
 
-    def __init__(self, path: str, target_profile: str = None):
+    def __init__(self, path: str, prefix: str, params, default_profile, target_profile: str = None):
         self.path = path
+        self.prefix = prefix
+        self.params = params.get(default_profile, params)
         self.target_profile = target_profile
 
     def __call__(self):
-        params = dotenv_values(self.path)
+        env = dotenv_values(self.path)
+        params = get_env_params(env, self.prefix, self.params)
         if self.target_profile is not None:
-            result = {self.target_profile: env_params}
+            result = {self.target_profile: params}
         if len(params) > 0:
-            params['__source__'] = [self.path]
-        return params
+            result['__source__'] = [self.path]
+        return result
+
+
+def get_env_params(env, prefix, ref_params):
+    params = {}
+    for env_key, env_value in env.items():
+        if env_key.startswith(prefix):
+            key = env_key.replace(prefix, '').lower()
+            if key in ref_params:
+                params[key] = env_value
+    return params
 
 
 class EnvParser(Parser):
@@ -93,12 +106,7 @@ class EnvParser(Parser):
         self.target_profile = target_profile
 
     def __call__(self) -> Dict[str, any]:
-        env_params = {}
-        for env_key, env_value in os.environ.items():
-            if env_key.startswith(self.prefix):
-                key = env_key.replace(self.prefix, '').lower()
-                if key in self.params:
-                    env_params[key] = env_value
+        env_params = get_env_params(os.environ, self.prefix, self.params)
         result = env_params
         if self.target_profile is not None:
             result = {self.target_profile: env_params}

@@ -62,12 +62,15 @@ def load(file: Optional[Union[str, List[str]]] = None,
         parser_class = PARSER_MAP[ext]
         parser = parser_class(path)
         params = parser()
-        if not meta.default_profile in params:
-            params = {meta.default_profile: params}
         layers.append(params)
 
+    params = reduce(merge_layers, layers, {})
+    if not meta.default_profile in params:
+        params = {meta.default_profile: params}
+    layers = [params]
+
     if meta.dot_env_file is not None:
-        parser = DotEnvParser(self, meta.dot_env_file, target_profile=meta.profile)
+        parser = DotEnvParser(meta.dot_env_file, meta.env_prefix, layers[0], meta.default_profile, target_profile=meta.profile)
         params = parser()
         if len(params) > 0:
             layers.append(params)
