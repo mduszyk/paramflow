@@ -125,7 +125,8 @@ def test_load_all_layers(temp_file, monkeypatch):
     file4 = temp_file('{"prod": {"debug": false}}', '.json')
     file5 = temp_file('P_NAME=production', '.env')
     monkeypatch.setenv('P_LR', '0.0001')
-    monkeypatch.setattr(sys, 'argv', ['test.py', '--profile', 'prod', '--batch_size', '64'])
+    monkeypatch.setenv('P_PROFILE', 'prod')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64'])
     params = pf.load(source=[file1, file2, file3, file4, file5])
     assert params.name == 'production'
     assert params.lr == 0.0001
