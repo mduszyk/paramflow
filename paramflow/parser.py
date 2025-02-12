@@ -2,12 +2,10 @@ import argparse
 import configparser
 import json
 import os
-import tomllib
 from typing import Dict, Final, Type
 from abc import ABC, abstractmethod
 
 import yaml
-from dotenv import dotenv_values
 
 
 class Parser(ABC):
@@ -22,6 +20,7 @@ class TomlParser(Parser):
         self.path = path
 
     def __call__(self, *args) -> Dict[str, any]:
+        import tomllib
         with open(self.path, 'rb') as fp:
             params = tomllib.load(fp)
         if len(params) > 0:
@@ -78,6 +77,7 @@ class DotEnvParser(Parser):
         self.target_profile = target_profile
 
     def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+        from dotenv import dotenv_values
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
