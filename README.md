@@ -14,9 +14,12 @@ easy parameter overrides.
 - **Generate argument parser**: Use parameters defined in files as a reference for generating ```argparse``` parser.
 
 ## Usage
-
+Install:
 ```shell
 pip install paramflow
+```
+Install with ```.env``` support:
+```shell
 pip install paramflow[dotenv]
 ```
 
