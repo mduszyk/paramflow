@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Union, Final, Type
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
-from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser
+from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser
 
 # defaults
 ENV_PREFIX: Final[str] = 'P_'
@@ -27,8 +27,8 @@ def load(source: Optional[Union[str, List[str]]] = None,
     Load parameters form multiple sources, layer them on top of each other and activate profile.
     Activation of profile means learying it on top of the default profile.
     :param source: file or multiple files to load parameters from
-    :param env_prefix: prefix for env vars that are used to overwrite params
-    :param args_prefix: prefix for command-line arguments
+    :param env_prefix: prefix for env vars that are used to overwrite params, if None disable auto adding env source
+    :param args_prefix: prefix for command-line arguments, if None disable auto adding args source
     :param profile_key: parameter name for the profile
     :param default_profile: default profile
     :param profile: profile to activate
@@ -62,7 +62,7 @@ def load(source: Optional[Union[str, List[str]]] = None,
     return parse(parsers, meta.default_profile, meta.profile)
 
 
-def parse(parsers, default_profile, target_profile):
+def parse(parsers: List[Parser], default_profile: str, target_profile: str):
     params = {}
     for parser in parsers:
         params = deep_merge(params, parser(params))
@@ -70,7 +70,7 @@ def parse(parsers, default_profile, target_profile):
     return freeze(params)
 
 
-def build_parsers(sources, meta):
+def build_parsers(sources: List[str], meta: Dict[str, any]):
     parsers = []
     for source in sources:
         if source == ARGS_SOURCE:
@@ -101,7 +101,7 @@ def activate_profile(params: Dict[str, any], default_profile: str, profile: str)
     return profile_params
 
 
-def deep_merge(dst: dict, src: dict, path='') -> dict:
+def deep_merge(dst: dict, src: dict, path: str = '') -> dict:
     for src_key, src_value in src.items():
         if src_key == '__source__':
             if not src_key in dst:

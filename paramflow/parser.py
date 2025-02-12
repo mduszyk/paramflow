@@ -60,7 +60,7 @@ class IniParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self, *args):
+    def __call__(self, *args) -> Dict[str, any]:
         config = configparser.ConfigParser()
         config.read(self.path)
         params = {section: dict(config.items(section)) for section in config.sections()}
@@ -71,13 +71,13 @@ class IniParser(Parser):
 
 class DotEnvParser(Parser):
 
-    def __init__(self, path: str, prefix: str, default_profile, target_profile: str = None):
+    def __init__(self, path: str, prefix: str, default_profile: str, target_profile: str = None):
         self.path = path
         self.prefix = prefix
         self.default_profile = default_profile
         self.target_profile = target_profile
 
-    def __call__(self, params):
+    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
@@ -90,7 +90,7 @@ class DotEnvParser(Parser):
         return params
 
 
-def get_env_params(env, prefix, ref_params):
+def get_env_params(env: Dict[str, any], prefix: str, ref_params: Dict[str, any]) -> Dict[str, any]:
     params = {}
     for env_key, env_value in env.items():
         if env_key.startswith(prefix):
