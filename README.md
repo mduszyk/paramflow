@@ -15,6 +15,11 @@ easy parameter overrides.
 
 ## Usage
 
+```shell
+pip install paramflow
+pip install paramflow[dotenv]
+```
+
 ```python
 import paramflow as pf
 params = pf.load(source='dqn_params.toml')
