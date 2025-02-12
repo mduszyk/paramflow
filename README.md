@@ -103,11 +103,11 @@ debug = true
 database_url = "mysql://localhost:3306/myapp"
 
 [dev]
-database_url = "mysql://dev.app.example.com:3306/myapp"
+database_url = "mysql://dev:3306/myapp"
 
 [prod]
 debug = false
-database_url = "mysql://app.example.com:3306/myapp"
+database_url = "mysql://prod:3306/myapp"
 ```
 Activate prod profile:
 ```shell
