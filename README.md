@@ -34,7 +34,7 @@ Meta-parameter layering controls how ```paramflow.load``` reads its own configur
 
 Layering order:
 1. ```paramflow.load``` arguments.
-2. Environment variables (default prefix 'P_').
+2. Environment variables (default prefix ```P_```).
 3. Command-line arguments (via ```argparse```).
 
 Activate profile using command-line arguments:
@@ -52,7 +52,7 @@ Parameter layering merges parameters from multiple sources.
 Layering order:
 1. Configuration files (```.toml```, ```.yaml```, ```.ini```, ```.json```).
 2. ```.env``` file.
-3. Environment variables (default prefix 'P_').
+3. Environment variables (default prefix ```P_```).
 4. Command-line arguments (via ```argparse```).
 
 Layering order can be customized via ```source``` argument to ```param.flow```.
@@ -84,7 +84,7 @@ Activating adam profile
 ```bash
 python app.py --profile adam
 ```
-will result in overwriting default learning rate with ```1e-4```, default optimizer class with ```'torch.optim.Adam'```
+will result in overwriting default learning rate with ```1e-4```, default optimizer class with ```torch.optim.Adam```
 and default optimizer arguments with and empty dict.
 
 ## Development stages profiles
@@ -103,7 +103,7 @@ debug = false
 database_url = "mysql://user:pass@app.example.com:3306/myapp"
 ```
 Activate prod profile:
-```bash
+```shell
 export P_PROFILE=dev
 python app.py
 ```
