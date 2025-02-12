@@ -25,8 +25,8 @@ pip install paramflow[dotenv]
 
 ```python
 import paramflow as pf
-params = pf.load(source='dqn_params.toml')
-print(params.lr)
+params = pf.load(source='params.toml')
+print(params.learning_rate)
 ```
 
 ## Meta-parameter Layering
