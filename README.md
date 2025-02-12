@@ -2,16 +2,16 @@
 A parameter and configuration management library motivated by training machine learning models
 and managing configuration for applications that require profiles and layered parameters.
 ```paramflow``` is designed for flexibility and ease of use, enabling seamless parameter merging
-from multiple sources. It also auto-generates a command-line argument parser based on the first
-parameter file and allows for easy parameter overrides.
+from multiple sources. It also auto-generates a command-line argument parser and allows for
+easy parameter overrides.
 
 ## Features
 - **Layered configuration**: Merge parameters from files, environment variables, and command-line arguments.
 - **Immutable dictionary**: Provides a read-only dictionary with attribute-style access.
 - **Profile support**: Manage multiple sets of parameters. Layer the chosen profile on top of the default profile.
 - **Layered metaparameters**: ```paramflow``` loads its own configuration using layered approach.
-- **Convert types**: Use first parameters file as a reference for type conversions.
-- **Generate arg parser**: Use first parameters file as a reference for generating ```argparse``` parser.
+- **Convert types**: Convert types during merging using target parameters as a reference for type conversions.
+- **Generate argument parser**: Use parameters defined in files as a reference for generating ```argparse``` parser.
 
 ## Usage
 
@@ -21,56 +21,81 @@ params = pf.load(source='dqn_params.toml')
 print(params.lr)
 ```
 
-## Metaparameter Layering (Controls paramflow.load)
-1. ```paramflow.load(...)``` arguments
-2. Environment variables (default prefix 'P_')
-3. Command-line arguments (via ```argparse```)
+## Metaparameter Layering
+Metaparameter layering controls how ```paramflow.load``` reads its own configuration.
 
-### Example
+Layering order:
+1. ```paramflow.load``` arguments.
+2. Environment variables (default prefix 'P_').
+3. Command-line arguments (via ```argparse```).
+
 Activate profile using command-line arguments:
 ```bash
 python print_params.py --profile dqn-adam
 ```
 Activate profile using environment variable:
 ```bash
-export P_PROFILE=dqn-adam
-python print_params.py
+P_PROFILE=dqn-adam python print_params.py
 ```
 
 ## Parameter Layering
-1. Configuration files (```.toml```, ```.yaml```, ```.ini```, ```.json```)
-2. ```.env``` file (disabled by default)
-3. Environment variables (default prefix 'P_')
-4. Command-line arguments (via ```argparse```)
+Parameter layering merges parameters from multiple sources.
+
+Layering order:
+1. Configuration files (```.toml```, ```.yaml```, ```.ini```, ```.json```).
+2. ```.env``` file.
+3. Environment variables (default prefix 'P_').
+4. Command-line arguments (via ```argparse```).
+
+Layering order can be customized via ```source``` argument to ```param.flow```.
+```python
+params = pf.load(source=['params.toml', 'env', '.env', 'args'])
+```
  
-###
 Overwrite parameter value:
 ```bash
 python print_params.py --profile dqn-adam --lr 0.0002
 ```
 
-## Devalopment stages profiles
-Here is an example of using profiles to manage software development stages.
-
+## ML hyper-parameters profiles
+```params.toml```
 ```toml
 [default]
-name = 'myapp'
+learning_rate = 0.00025
+batch_size = 32
+optimizer_class = 'torch.optim.RMSprop'
+optimizer_kwargs = { momentum = 0.95 }
+random_seed = 13
+
+[adam]
+learning_rate = 1e-4
+optimizer_class = 'torch.optim.Adam'
+optimizer_kwargs = {}
+```
+Activating adam profile
+```bash
+python app.py --profile adam
+```
+will result in overwriting default learning rate with ```1e-4```, default optimizer class with ```'torch.optim.Adam'```
+and default optimizer arguments with and empty dict.
+
+## Devalopment stages profiles
+Profiles can be used to manage software development stages.
+```params.toml```:
+```toml
+[default]
 debug = true
-database_url = "mysql://devuser:devpass@localhost:3306/myapp"
+database_url = "mysql://user:pass@localhost:3306/myapp"
 
 [dev]
-debug = true
-database_url = "mysql://devuser:devpass@myapp-dev.example.com:3306/myapp_dev"
-
-[test]
-debug = false
-database_url = "mysql://devuser:devpass@myapp-dev.example.com:3306/myapp_test"
+database_url = "mysql://user:pass@dev.app.example.com:3306/myapp"
 
 [prod]
 debug = false
-database_url = "mysql://devuser:devpass@myapp.example.com:3306/myapp"
+database_url = "mysql://user:pass@app.example.com:3306/myapp"
 ```
-
+Activate prod profile:
 ```bash
-P_PROFILE=dev python myapp.py
+export P_PROFILE=dev
+python app.py
 ```
