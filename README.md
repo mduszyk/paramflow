@@ -9,7 +9,7 @@ easy parameter overrides.
 - **Layered configuration**: Merge parameters from files, environment variables, and command-line arguments.
 - **Immutable dictionary**: Provides a read-only dictionary with attribute-style access.
 - **Profile support**: Manage multiple sets of parameters. Layer the chosen profile on top of the default profile.
-- **Layered metaparameters**: ```paramflow``` loads its own configuration using layered approach.
+- **Layered meta-parameters**: ```paramflow``` loads its own configuration using layered approach.
 - **Convert types**: Convert types during merging using target parameters as a reference for type conversions.
 - **Generate argument parser**: Use parameters defined in files as a reference for generating ```argparse``` parser.
 
@@ -29,8 +29,8 @@ params = pf.load(source='dqn_params.toml')
 print(params.lr)
 ```
 
-## Metaparameter Layering
-Metaparameter layering controls how ```paramflow.load``` reads its own configuration.
+## Meta-parameter Layering
+Meta-parameter layering controls how ```paramflow.load``` reads its own configuration.
 
 Layering order:
 1. ```paramflow.load``` arguments.
@@ -87,7 +87,7 @@ python app.py --profile adam
 will result in overwriting default learning rate with ```1e-4```, default optimizer class with ```'torch.optim.Adam'```
 and default optimizer arguments with and empty dict.
 
-## Devalopment stages profiles
+## Development stages profiles
 Profiles can be used to manage software development stages.
 ```params.toml```:
 ```toml
