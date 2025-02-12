@@ -23,6 +23,13 @@ Install with ```.env``` support:
 pip install paramflow[dotenv]
 ```
 
+```params.toml```
+```toml
+[default]
+learning_rate = 0.001
+```
+
+```app.py```
 ```python
 import paramflow as pf
 params = pf.load(source='params.toml')
