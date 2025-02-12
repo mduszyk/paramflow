@@ -100,14 +100,14 @@ Profiles can be used to manage software development stages.
 ```toml
 [default]
 debug = true
-database_url = "mysql://user:pass@localhost:3306/myapp"
+database_url = "mysql://localhost:3306/myapp"
 
 [dev]
-database_url = "mysql://user:pass@dev.app.example.com:3306/myapp"
+database_url = "mysql://dev.app.example.com:3306/myapp"
 
 [prod]
 debug = false
-database_url = "mysql://user:pass@app.example.com:3306/myapp"
+database_url = "mysql://app.example.com:3306/myapp"
 ```
 Activate prod profile:
 ```shell
