@@ -45,11 +45,11 @@ Layering order:
 3. Command-line arguments (via ```argparse```).
 
 Activate profile using command-line arguments:
-```bash
+```shell
 python print_params.py --profile dqn-adam
 ```
 Activate profile using environment variable:
-```bash
+```shell
 P_PROFILE=dqn-adam python print_params.py
 ```
 
@@ -68,7 +68,7 @@ params = pf.load(source=['params.toml', 'env', '.env', 'args'])
 ```
  
 Overwrite parameter value:
-```bash
+```shell
 python print_params.py --profile dqn-adam --lr 0.0002
 ```
 
@@ -88,7 +88,7 @@ optimizer_class = 'torch.optim.Adam'
 optimizer_kwargs = {}
 ```
 Activating adam profile
-```bash
+```shell
 python app.py --profile adam
 ```
 will result in overwriting default learning rate with ```1e-4```, default optimizer class with ```torch.optim.Adam```
