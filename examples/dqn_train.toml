@@ -19,7 +19,6 @@ model_log_freq = 1000
 eps_decay_time = 1_000_000 # epsilon decay for epsilon greedy
 eps_start = 1
 eps_end = 0.1
-eps_eval = 0.05
 
 lr = 0.00025
 batch_size = 32
@@ -61,7 +60,6 @@ target = 'double_dqn_target'
 target_update_freq = 30_000
 shared_bias = true
 eps_end = 0.01
-eps_eval = 0.001
 lr = 1e-4
 optimizer_class = 'torch.optim.Adam'
 optimizer_kwargs = {}

@@ -1,0 +1,7 @@
+[default]
+model_uri = 'runs:/8d3c31e65a3240eda1e0e92890057f46/q0_episode_22000'
+video_dir = 'videos'
+eps_eval = 0.05
+
+[double-dqn-tuned-adam]
+eps_eval = 0.001
