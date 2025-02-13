@@ -32,7 +32,7 @@ learning_rate = 0.001
 ```app.py```
 ```python
 import paramflow as pf
-params = pf.load(source='params.toml')
+params = pf.load('params.toml')
 print(params.learning_rate)
 ```
 
@@ -64,7 +64,7 @@ Layering order:
 
 Layering order can be customized via ```source``` argument to ```param.flow```.
 ```python
-params = pf.load(source=['params.toml', 'env', '.env', 'args'])
+params = pf.load(['params.toml', 'env', '.env', 'args'])
 ```
  
 Overwrite parameter value:

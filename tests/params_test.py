@@ -140,7 +140,7 @@ def test_load_all_layers(temp_file, monkeypatch):
     monkeypatch.setenv('P_LR', '0.0001')
     monkeypatch.setenv('P_PROFILE', 'prod')
     monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64'])
-    params = pf.load(source=[file1, file2, file3, file4, file5])
+    params = pf.load([file1, file2, file3, file4, file5])
     assert params.name == 'production'
     assert params.lr == 0.0001
     assert params.batch_size == 64
@@ -155,7 +155,7 @@ def test_custom_merge_order(temp_file, monkeypatch):
     monkeypatch.setenv('P_NAME', 'dev')
     monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64'])
     source = [file_toml, 'env', dot_env, 'args']
-    params = pf.load(source=source)
+    params = pf.load(source)
     assert params.name == 'prod'
     assert params.batch_size == 64
     assert params.debug
