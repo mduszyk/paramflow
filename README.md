@@ -69,7 +69,7 @@ params = pf.load(['params.toml', 'env', '.env', 'args'])
  
 Overwrite parameter value:
 ```shell
-python print_params.py --profile dqn-adam --lr 0.0002
+python print_params.py --profile dqn-adam --learning_rate 0.0002
 ```
 
 ## ML hyper-parameters profiles
