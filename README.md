@@ -20,7 +20,7 @@ pip install paramflow
 ```
 Install with ```.env``` support:
 ```shell
-pip install paramflow[dotenv]
+pip install "paramflow[dotenv]"
 ```
 
 ```params.toml```
