@@ -22,6 +22,19 @@ def test_merge_layers():
     deep_merge(dst, src)
     assert dst['default']['name'] == 'test123'
 
+def test_merge_empty_dict():
+    dst = {
+        'default': {
+            'kwargs': {
+                'lr': 1e-3,
+                'debug': True,
+            }
+        }
+    }
+    src = {'default': {'kwargs': {}}}
+    deep_merge(dst, src)
+    assert dst['default']['kwargs'] == {}
+
 
 def test_activate_profile():
     params = {

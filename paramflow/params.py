@@ -107,7 +107,7 @@ def deep_merge(dst: dict, src: dict, path: str = '') -> dict:
             if not src_key in dst:
                 dst[src_key] = []
             dst[src_key].extend(src_value)
-        elif isinstance(src_value, dict) and isinstance(dst.get(src_key), dict):
+        elif isinstance(src_value, dict) and isinstance(dst.get(src_key), dict) and len(src_value) > 0:
             deep_merge(dst[src_key], src_value, f'{path}.{src_key}')
         elif isinstance(src_value, list) and isinstance(dst.get(src_key), list) and len(src_value) == len(dst[src_key]):
             for i in range(len(src_value)):

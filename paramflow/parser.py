@@ -83,10 +83,11 @@ class DotEnvParser(Parser):
         params = params.get(self.default_profile, params)
         env = dotenv_values(self.path)
         params = get_env_params(env, self.prefix, params)
-        if self.target_profile is not None:
-            params = {self.target_profile: params}
         if len(params) > 0:
-            params['__source__'] = [self.path]
+            if self.target_profile is not None:
+                params = {self.target_profile: params}
+            if len(params) > 0:
+                params['__source__'] = [self.path]
         return params
 
 
@@ -113,10 +114,11 @@ class EnvParser(Parser):
         params = params.get(self.default_profile, params)
         env_params = get_env_params(os.environ, self.prefix, params)
         result = env_params
-        if self.target_profile is not None:
-            result = {self.target_profile: env_params}
         if len(env_params) > 0:
-            result['__source__'] = ['env']
+            if self.target_profile is not None:
+                result = {self.target_profile: env_params}
+            if len(env_params) > 0:
+                result['__source__'] = ['env']
         return result
 
 
@@ -144,10 +146,11 @@ class ArgsParser(Parser):
                 key = arg_key.replace(self.prefix, '')
                 args_params[key] = arg_value
         result = args_params
-        if self.target_profile is not None:
-            result = {self.target_profile: args_params}
         if len(args_params) > 0:
-            result['__source__'] = ['args']
+            if self.target_profile is not None:
+                result = {self.target_profile: args_params}
+            if len(args_params) > 0:
+                result['__source__'] = ['args']
         return result
 
 
