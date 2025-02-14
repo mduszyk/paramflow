@@ -122,19 +122,30 @@ class EnvParser(Parser):
         return result
 
 
+class NoExitArgumentParser(argparse.ArgumentParser):
+    def exit(self, status=0, message=None):
+        if message:
+            print(message)
+
+
 class ArgsParser(Parser):
 
-    def __init__(self, prefix: str, default_profile: str, target_profile: str = None, **kwargs):
+    def __init__(self, prefix: str, default_profile: str, target_profile: str = None,
+                 no_exit: bool = False, descr: str = None):
         self.prefix = prefix
         self.default_profile = default_profile
         self.target_profile = target_profile
-        self.kwargs = kwargs
+        self.no_exit = no_exit
+        self.descr = descr
 
     def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
-        parser = argparse.ArgumentParser(**self.kwargs)
+        if self.no_exit:
+            parser = NoExitArgumentParser(description=self.descr)
+        else:
+            parser = argparse.ArgumentParser(description=self.descr)
         for key, value in params.items():
             typ = type(value)
             if typ is dict or typ is list or typ is bool or value is None:

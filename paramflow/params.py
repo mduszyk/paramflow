@@ -44,7 +44,7 @@ def load(source: Optional[Union[str, List[str]]] = None,
         profile_key: profile,
     }
     meta_env_parser = EnvParser(ENV_PREFIX, DEFAULT_PROFILE)
-    meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE, add_help=False)
+    meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE, no_exit=True, descr='Meta-parameters')
     meta = deep_merge(meta, meta_env_parser(meta))
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
@@ -74,7 +74,7 @@ def build_parsers(sources: List[str], meta: Dict[str, any]):
     parsers = []
     for source in sources:
         if source == ARGS_SOURCE:
-            parser = ArgsParser(meta.args_prefix, meta.default_profile, meta.profile)
+            parser = ArgsParser(meta.args_prefix, meta.default_profile, meta.profile, descr='Parameters')
         elif source == ENV_SOURCE:
             parser = EnvParser(meta.env_prefix, meta.default_profile, meta.profile)
         elif source.endswith('.env'):
