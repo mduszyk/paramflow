@@ -27,6 +27,7 @@ pip install "paramflow[dotenv]"
 ```toml
 [default]
 learning_rate = 0.001
+batch_size = 64
 ```
 
 ```app.py```
@@ -34,6 +35,18 @@ learning_rate = 0.001
 import paramflow as pf
 params = pf.load('params.toml')
 print(params.learning_rate)
+```
+
+```shell
+python app.py --help
+usage: app.py [-h] [--learning_rate LEARNING_RATE] [--batch_size BATCH_SIZE]
+
+options:
+  -h, --help            show this help message and exit
+  --learning_rate LEARNING_RATE
+                        learning_rate = 0.001
+  --batch_size BATCH_SIZE
+                        batch_size = 64
 ```
 
 ## Meta-parameter Layering
