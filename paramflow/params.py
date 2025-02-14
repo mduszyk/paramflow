@@ -44,13 +44,13 @@ def load(source: Optional[Union[str, List[str]]] = None,
         profile_key: profile,
     }
     meta_env_parser = EnvParser(ENV_PREFIX, DEFAULT_PROFILE)
-    meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE)
+    meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE, add_help=False)
     meta = deep_merge(meta, meta_env_parser(meta))
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
 
     if meta.source is None:
-        sys.exit('file meta param is missing')
+        sys.exit('source meta param is missing')
 
     sources = list(meta.source) if isinstance(meta.source, list) else [meta.source]
     if ENV_SOURCE not in sources and meta.env_prefix is not None:

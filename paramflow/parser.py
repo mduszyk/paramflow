@@ -124,16 +124,17 @@ class EnvParser(Parser):
 
 class ArgsParser(Parser):
 
-    def __init__(self, prefix: str, default_profile: str, target_profile: str = None):
+    def __init__(self, prefix: str, default_profile: str, target_profile: str = None, **kwargs):
         self.prefix = prefix
         self.default_profile = default_profile
         self.target_profile = target_profile
+        self.kwargs = kwargs
 
     def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(**self.kwargs)
         for key, value in params.items():
             typ = type(value)
             if typ is dict or typ is list or typ is bool or value is None:
