@@ -74,7 +74,7 @@ params = pf.load('params.toml', 'env', '.env', 'args')
 ```
 
 ### Overriding Parameters
-Command-line arguments override other sources:
+Override parameters via command-line arguments:
 ```sh
 python print_params.py --profile dqn-adam --learning_rate 0.0002
 ```
