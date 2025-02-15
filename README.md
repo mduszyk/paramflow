@@ -11,6 +11,7 @@ and allows for easy parameter overrides.
 - **Layered meta-parameters**: `paramflow` configures itself using a layered approach.
 - **Automatic type conversion**: Converts types during merging based on target parameter types.
 - **Command-line argument parsing**: Automatically generates an `argparse` parser from parameter definitions.
+- **Nested Configuration**: Allows for nested configuration and merging.
 
 ## Installation
 ```sh
