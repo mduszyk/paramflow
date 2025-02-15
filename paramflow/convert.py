@@ -18,6 +18,7 @@ CONVERSION_MAP = {
         float: float,
         dict: json.loads,
         list: json.loads,
+        tuple: lambda s: (s,)
     }
 }
 

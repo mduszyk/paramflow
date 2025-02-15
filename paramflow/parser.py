@@ -148,7 +148,7 @@ class ArgsParser(Parser):
             parser = argparse.ArgumentParser(description=self.descr)
         for key, value in params.items():
             typ = type(value)
-            if typ is dict or typ is list or typ is bool or value is None:
+            if typ is dict or typ is list or typ is bool or typ is tuple or value is None:
                 typ = str
             parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, help=f'{key} = {value}')
         args, _ = parser.parse_known_args()

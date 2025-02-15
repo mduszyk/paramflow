@@ -87,7 +87,7 @@ def test_toml_no_profiles(temp_file, monkeypatch):
     )
     file_path = temp_file(file_content, '.toml')
     monkeypatch.setattr(sys, 'argv', ['test.py'])
-    params = pf.load(source=file_path)
+    params = pf.load(file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -104,7 +104,7 @@ def test_toml_default(temp_file, monkeypatch):
     )
     file_path = temp_file(file_content, '.toml')
     monkeypatch.setattr(sys, 'argv', ['test.py'])
-    params = pf.load(source=file_path)
+    params = pf.load(file_path)
     assert params.name == 'test'
     assert params.lr == 1e-3
     assert params.debug
@@ -124,7 +124,7 @@ def test_yaml_profile_env_args(temp_file, monkeypatch):
     file_path = temp_file(file_content, '.yaml')
     monkeypatch.setenv('P_LR', '0.0001')
     monkeypatch.setattr(sys, 'argv', ['test.py', '--profile', 'prod', '--name', 'production'])
-    params = pf.load(source=file_path)
+    params = pf.load(file_path)
     assert params.name == 'production'
     assert params.lr == 1e-4
     assert not params.debug
@@ -140,7 +140,7 @@ def test_load_all_layers(temp_file, monkeypatch):
     monkeypatch.setenv('P_LR', '0.0001')
     monkeypatch.setenv('P_PROFILE', 'prod')
     monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64'])
-    params = pf.load([file1, file2, file3, file4, file5])
+    params = pf.load(file1, file2, file3, file4, file5)
     assert params.name == 'production'
     assert params.lr == 0.0001
     assert params.batch_size == 64
@@ -155,7 +155,7 @@ def test_custom_merge_order(temp_file, monkeypatch):
     monkeypatch.setenv('P_NAME', 'dev')
     monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64'])
     source = [file_toml, 'env', dot_env, 'args']
-    params = pf.load(source)
+    params = pf.load(*source)
     assert params.name == 'prod'
     assert params.batch_size == 64
     assert params.debug

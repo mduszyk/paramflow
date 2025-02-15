@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 from functools import reduce
-from typing import List, Dict, Optional, Union, Final, Type
+from typing import List, Dict, Optional, Union, Final, Type, Tuple
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
@@ -17,7 +17,7 @@ ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
 
 
-def load(source: Optional[Union[str, List[str]]] = None,
+def load(*sources: Tuple[str, ...],
          env_prefix: str = ENV_PREFIX,
          args_prefix: str = ARGS_PREFIX,
          profile_key: str = PROFILE_KEY,
@@ -36,7 +36,7 @@ def load(source: Optional[Union[str, List[str]]] = None,
     """
 
     meta = {
-        'source': source,
+        'sources': sources,
         'env_prefix': env_prefix,
         'args_prefix': args_prefix,
         'profile_key': profile_key,
@@ -49,10 +49,11 @@ def load(source: Optional[Union[str, List[str]]] = None,
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
 
-    if meta.source is None:
+    if meta.sources is None or len(meta.sources) == 0:
         sys.exit('source meta param is missing')
 
-    sources = list(meta.source) if isinstance(meta.source, list) else [meta.source]
+    sources = list(meta.sources)
+
     if ENV_SOURCE not in sources and meta.env_prefix is not None:
         sources.append(ENV_SOURCE)
     if ARGS_SOURCE not in sources and meta.args_prefix is not None:
