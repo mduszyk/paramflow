@@ -42,6 +42,7 @@ def load(*sources: Tuple[str, ...],
         'profile_key': profile_key,
         'default_profile': default_profile,
         profile_key: profile,
+        '__source__': ['pf.load'],
     }
     meta_env_parser = EnvParser(ENV_PREFIX, DEFAULT_PROFILE)
     meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE, no_exit=True, descr='Meta-parameters')
@@ -50,7 +51,7 @@ def load(*sources: Tuple[str, ...],
     meta = freeze(meta)
 
     if meta.sources is None or len(meta.sources) == 0:
-        sys.exit('source meta param is missing')
+        sys.exit('sources meta param is missing')
 
     sources = list(meta.sources)
 
