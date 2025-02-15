@@ -172,3 +172,24 @@ def test_specify_file_via_cmd(temp_file, monkeypatch):
     assert params.debug
     assert params.__source__ == [file_toml]
     assert params.__profile__ == ['default']
+
+
+def test_nested_configuration(temp_file):
+    file1_yaml = temp_file(
+        """
+        default:
+          level1:
+            level2:
+                name: 'foo'
+                value: 0
+        """, '.yaml')
+    file2_yaml = temp_file(
+        """
+        default:
+          level1:
+            level2:
+                value: 42
+        """, '.yaml')
+    params = pf.load(file1_yaml, file2_yaml)
+    assert params.level1.level2.name == 'foo'
+    assert params.level1.level2.value == 42
