@@ -178,6 +178,8 @@ def test_nested_configuration(temp_file):
         """
         default:
           level1:
+            name: 'abc'
+            value: 17
             level2:
                 name: 'foo'
                 value: 0
@@ -186,9 +188,12 @@ def test_nested_configuration(temp_file):
         """
         default:
           level1:
+            name: 'bar'
             level2:
                 value: 42
         """, '.yaml')
     params = pf.load(file1_yaml, file2_yaml)
+    assert params.level1.name == 'bar'
+    assert params.level1.value == 17
     assert params.level1.level2.name == 'foo'
     assert params.level1.level2.value == 42
