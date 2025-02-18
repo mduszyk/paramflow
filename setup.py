@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='paramflow',
-    version='0.2.5',
+    version='0.2.6',
     description='Flexible and user-friendly parameter and configuration management library.',
     packages=find_packages(),
     install_requires=[

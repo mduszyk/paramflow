@@ -62,13 +62,12 @@ P_PROFILE=dqn-adam python print_params.py
 
 ## Parameter Layering
 Parameters are merged from multiple sources in the following order:
-1. Configuration files (`.toml`, `.yaml`, `.ini`, `.json`)
-2. `.env` file (if enabled)
-3. Environment variables (default prefix: `P_`)
-4. Command-line arguments (`argparse`)
+1. Configuration files (`.toml`, `.yaml`, `.ini`, `.json`, `.env`)
+2. Environment variables (default prefix: `P_`)
+3. Command-line arguments (`argparse`)
 
 ### Customizing Layering Order
-You can specify the order explicitly:
+You can specify the order explicitly (`env` and `args` are reserved names):
 ```python
 params = pf.load('params.toml', 'env', '.env', 'args')
 ```

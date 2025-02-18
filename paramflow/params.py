@@ -18,6 +18,8 @@ ARGS_SOURCE: Final[str] = 'args'
 
 
 def load(*sources: Tuple[str, ...],
+         meta_env_prefix: str = ENV_PREFIX,
+         meta_args_prefix: str = ARGS_PREFIX,
          env_prefix: str = ENV_PREFIX,
          args_prefix: str = ARGS_PREFIX,
          profile_key: str = PROFILE_KEY,
@@ -27,6 +29,8 @@ def load(*sources: Tuple[str, ...],
     Load parameters form multiple sources, layer them on top of each other and activate profile.
     Activation of profile means learying it on top of the default profile.
     :param source: file or multiple files to load parameters from
+    :param meta_env_prefix: prefix for env vars that are used to overwrite meta params
+    :param meta_args_prefix: prefix for command-line arguments to overwrite meta params
     :param env_prefix: prefix for env vars that are used to overwrite params, if None disable auto adding env source
     :param args_prefix: prefix for command-line arguments, if None disable auto adding args source
     :param profile_key: parameter name for the profile
@@ -44,8 +48,8 @@ def load(*sources: Tuple[str, ...],
         profile_key: profile,
         '__source__': ['pf.load'],
     }
-    meta_env_parser = EnvParser(ENV_PREFIX, DEFAULT_PROFILE)
-    meta_args_parser = ArgsParser(ARGS_PREFIX, DEFAULT_PROFILE, no_exit=True, descr='Meta-parameters')
+    meta_env_parser = EnvParser(meta_env_prefix, DEFAULT_PROFILE)
+    meta_args_parser = ArgsParser(meta_args_prefix, DEFAULT_PROFILE, no_exit=True, descr='Meta-parameters')
     meta = deep_merge(meta, meta_env_parser(meta))
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
