@@ -2,8 +2,8 @@ import argparse
 import configparser
 import json
 import os
-from typing import Dict, Final, Type
 from abc import ABC, abstractmethod
+from typing import Dict, Final, Type
 
 import yaml
 

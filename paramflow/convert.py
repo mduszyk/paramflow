@@ -1,6 +1,5 @@
 import json
 
-
 CONVERSION_MAP = {
     int: {
         float: float,

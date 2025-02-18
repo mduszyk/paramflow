@@ -4,9 +4,8 @@ from copy import copy
 from functools import reduce
 from tempfile import NamedTemporaryFile
 
-import pytest
-
 import paramflow as pf
+import pytest
 from paramflow.params import activate_profile, deep_merge
 
 

@@ -8,7 +8,6 @@ from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
 from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser
 
-
 ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
 
