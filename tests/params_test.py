@@ -10,7 +10,7 @@ import paramflow as pf
 from paramflow.params import activate_profile, deep_merge
 
 
-def test_merge_layers():
+def test_deep_merge():
     dst = {
         'default': {
             'name': 'test',
@@ -22,7 +22,7 @@ def test_merge_layers():
     deep_merge(dst, src)
     assert dst['default']['name'] == 'test123'
 
-def test_merge_empty_dict():
+def test_deep_merge_empty_dict():
     dst = {
         'default': {
             'kwargs': {

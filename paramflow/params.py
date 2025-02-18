@@ -8,22 +8,18 @@ from paramflow.convert import convert_type
 from paramflow.frozen import freeze, FrozenAttrDict
 from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser
 
-# defaults
-ENV_PREFIX: Final[str] = 'P_'
-ARGS_PREFIX: Final[str] = ''
-DEFAULT_PROFILE: Final[str] = 'default'
-PROFILE_KEY: Final[str] = 'profile'
+
 ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
 
 
 def load(*sources: Tuple[str, ...],
-         meta_env_prefix: str = ENV_PREFIX,
-         meta_args_prefix: str = ARGS_PREFIX,
-         env_prefix: str = ENV_PREFIX,
-         args_prefix: str = ARGS_PREFIX,
-         profile_key: str = PROFILE_KEY,
-         default_profile: str = DEFAULT_PROFILE,
+         meta_env_prefix: str = 'P_',
+         meta_args_prefix: str = '',
+         env_prefix: str = 'P_',
+         args_prefix: str = '',
+         profile_key: str = 'profile',
+         default_profile: str = 'default',
          profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
     """
     Load parameters form multiple sources, layer them on top of each other and activate profile.
@@ -48,8 +44,8 @@ def load(*sources: Tuple[str, ...],
         profile_key: profile,
         '__source__': ['pf.load'],
     }
-    meta_env_parser = EnvParser(meta_env_prefix, DEFAULT_PROFILE)
-    meta_args_parser = ArgsParser(meta_args_prefix, DEFAULT_PROFILE, no_exit=True, descr='Meta-parameters')
+    meta_env_parser = EnvParser(meta_env_prefix, 'default')
+    meta_args_parser = ArgsParser(meta_args_prefix, 'default', no_exit=True, descr='Meta-parameters')
     meta = deep_merge(meta, meta_env_parser(meta))
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
