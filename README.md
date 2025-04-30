@@ -1,5 +1,5 @@
 # paramflow
-`paramflow` is a flexible and user-friendly parameter and configuration management library designed for
+`paramflow` is a flexible and user-friendly hyperparameter and configuration management library designed for
 machine learning workflows and applications requiring profiles and layered parameters. It enables seamless
 merging of parameters from multiple sources, auto-generates a command-line argument parser,
 and allows for easy parameter overrides.
