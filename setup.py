@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='paramflow',
-    version='0.2.9',
-    description='Flexible and user-friendly hyperparameter and configuration management library.',
+    version='0.3',
+    description='A lightweight library for hyperparameter and configuration management', 
     packages=find_packages(),
     install_requires=[
         "pyyaml",
