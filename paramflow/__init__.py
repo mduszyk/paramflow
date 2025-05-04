@@ -1,2 +1,2 @@
-from paramflow.frozen import freeze
+from paramflow.frozen import freeze, unfreeze
 from paramflow.params import load

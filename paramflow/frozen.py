@@ -70,3 +70,25 @@ def freeze(params: Union[List[any], Dict[str, any]]) -> Union[FrozenList[any], F
             if isinstance(value, dict) or isinstance(value, list):
                 params[i] = freeze(value)
         return FrozenList(params)
+
+
+def unfreeze(params: Union[FrozenList[any], FrozenAttrDict[str, any]]) -> Union[List[any], Dict[str, any]]:
+    """
+    Recursively unfreeze tree of frozen dicts and lists.
+    Useful for serialization, where deserialization of immutable dict or list may fail.
+    :param params: frozen parameters tree
+    :return: parameters as dict and list tree
+    """
+    if isinstance(params, dict):
+        params = dict(params)
+        for key, value in params.items():
+            if isinstance(value, dict) or isinstance(value, list):
+                params[key] = unfreeze(value)
+        return params
+    elif isinstance(params, list):
+        params = list(params)
+        for i in range(len(params)):
+            value = params[i]
+            if isinstance(value, dict) or isinstance(value, list):
+                params[i] = unfreeze(value)
+        return params

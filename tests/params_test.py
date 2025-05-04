@@ -1,12 +1,24 @@
 import os
 import sys
+import pytest
+
 from copy import copy
 from functools import reduce
 from tempfile import NamedTemporaryFile
 
 import paramflow as pf
-import pytest
 from paramflow.params import activate_profile, deep_merge
+
+
+@pytest.fixture
+def temp_file(request):
+    def create_temp_file(content, suffix):
+        tmp = NamedTemporaryFile(delete=False, mode='w+', suffix=suffix)
+        tmp.write(content)
+        tmp.close()
+        request.addfinalizer(lambda: os.remove(tmp.name))
+        return tmp.name
+    return create_temp_file
 
 
 def test_deep_merge():
@@ -63,17 +75,6 @@ def test_merge_multiple_layers_and_activate():
     assert not params['debug']
     assert params['name'] == 'Jane'
     assert params['age'] == 30
-
-
-@pytest.fixture
-def temp_file(request):
-    def create_temp_file(content, suffix):
-        tmp = NamedTemporaryFile(delete=False, mode='w+', suffix=suffix)
-        tmp.write(content)
-        tmp.close()
-        request.addfinalizer(lambda: os.remove(tmp.name))
-        return tmp.name
-    return create_temp_file
 
 
 def test_toml_no_profiles(temp_file, monkeypatch):
