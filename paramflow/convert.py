@@ -33,3 +33,18 @@ def convert_type(dst_value, src_value, path=''):
         if path != '':
             path += ' '
         raise TypeError(f'unable to convert {path}{src_type} to {dst_type}') from e
+
+
+def infer_type(value: str):
+    result = value
+    if '.' in value:
+        try:
+            result = float(value)
+        except ValueError:
+            pass
+    else:
+        try:
+            result = int(value)
+        except ValueError:
+            pass
+    return result

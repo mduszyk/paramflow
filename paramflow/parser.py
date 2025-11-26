@@ -2,10 +2,13 @@ import argparse
 import configparser
 import json
 import os
+import sys
 from abc import ABC, abstractmethod
 from typing import Dict, Final, Type
 
 import yaml
+
+from paramflow.convert import infer_type
 
 
 class Parser(ABC):
@@ -131,12 +134,13 @@ class NoExitArgumentParser(argparse.ArgumentParser):
 class ArgsParser(Parser):
 
     def __init__(self, prefix: str, default_profile: str, target_profile: str = None,
-                 no_exit: bool = False, descr: str = None):
+                 no_exit: bool = False, descr: str = None, consume_args: bool = False):
         self.prefix = prefix
         self.default_profile = default_profile
         self.target_profile = target_profile
         self.no_exit = no_exit
         self.descr = descr
+        self.consume_args = consume_args
 
     def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
         if self.target_profile is None and self.default_profile in params:
@@ -151,12 +155,21 @@ class ArgsParser(Parser):
             if typ is dict or typ is list or typ is bool or typ is tuple or value is None:
                 typ = str
             parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, help=f'{key} = {value}')
-        args, _ = parser.parse_known_args()
+        args, remaining = parser.parse_known_args()
         args_params = {}
         for arg_key, arg_value in args.__dict__.items():
             if arg_value is not None:
                 key = arg_key.replace(self.prefix, '')
                 args_params[key] = arg_value
+
+        if self.consume_args:
+            sys.argv = [sys.argv[0]] + remaining
+        else:
+            it = iter(remaining)
+            for arg_name, arg_value in zip(it, it):
+                key = arg_name.replace('--', '').replace(self.prefix, '')
+                args_params[key] = infer_type(arg_value)
+
         result = args_params
         if len(args_params) > 0:
             if self.target_profile is not None:

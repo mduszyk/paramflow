@@ -165,7 +165,7 @@ def test_custom_merge_order(temp_file, monkeypatch):
 
 def test_specify_file_via_cmd(temp_file, monkeypatch):
     file_toml = temp_file('[default]\nname = "dev"\ndebug = true\nbatch_size=32', '.toml')
-    monkeypatch.setattr(sys, 'argv', ['test.py', '--source', file_toml])
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--sources', file_toml])
     params = pf.load()
     assert params.name == 'dev'
     assert params.batch_size == 32
@@ -198,3 +198,20 @@ def test_nested_configuration(temp_file):
     assert params.level1.value == 17
     assert params.level1.level2.name == 'foo'
     assert params.level1.level2.value == 42
+
+
+def test_args_only_param(temp_file, monkeypatch):
+    file_content = (
+        """
+        [default]
+        lr = 1e-3
+        debug = true
+        """
+    )
+    file_path = temp_file(file_content, '.toml')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--batch_size', '64', '--name', 'test'])
+    params = pf.load(file_path)
+    assert params.lr == 1e-3
+    assert params.debug
+    assert params.batch_size == 64
+    assert params.name == 'test'

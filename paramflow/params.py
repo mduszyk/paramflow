@@ -23,7 +23,7 @@ def load(*sources: Tuple[str, ...],
     """
     Load parameters form multiple sources, layer them on top of each other and activate profile.
     Activation of profile means learying it on top of the default profile.
-    :param source: file or multiple files to load parameters from
+    :param sources: file or multiple files to load parameters from
     :param meta_env_prefix: prefix for env vars that are used to overwrite meta params
     :param meta_args_prefix: prefix for command-line arguments to overwrite meta params
     :param env_prefix: prefix for env vars that are used to overwrite params, if None disable auto adding env source
@@ -44,7 +44,8 @@ def load(*sources: Tuple[str, ...],
         '__source__': ['pf.load'],
     }
     meta_env_parser = EnvParser(meta_env_prefix, 'default')
-    meta_args_parser = ArgsParser(meta_args_prefix, 'default', no_exit=True, descr='Meta-parameters')
+    meta_args_parser = ArgsParser(meta_args_prefix, 'default',
+                                  no_exit=True, consume_args=True, descr='Meta-parameters')
     meta = deep_merge(meta, meta_env_parser(meta))
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
