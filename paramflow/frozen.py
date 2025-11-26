@@ -1,4 +1,4 @@
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Any
 
 
 class ParamsDict(dict):
@@ -19,6 +19,8 @@ class ParamsDict(dict):
     def __delitem__(self, key):
         raise TypeError(f'{self.__class__.__name__} is immutable')
 
+    def __getattr__(self, key) -> Any:
+        return self[key]
 
 class ParamsList(list):
 
