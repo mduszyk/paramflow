@@ -214,3 +214,19 @@ def test_args_only_param(temp_file, monkeypatch):
     assert params.debug
     assert params.batch_size == 64
     assert params.name == 'test'
+
+
+def test_dict_params(temp_file, monkeypatch):
+    file_content = (
+        """
+        [default]
+        lr = 1e-3
+        debug = true
+        """
+    )
+    file_path = temp_file(file_content, '.toml')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(file_path, {'name': 'test'})
+    assert params.lr == 1e-3
+    assert params.debug
+    assert params.name == 'test'

@@ -6,13 +6,13 @@ from typing import List, Dict, Optional, Union, Final, Type, Tuple
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, ParamsDict
-from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser
+from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser, DictParser
 
 ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
 
 
-def load(*sources: str | Tuple[str, ...],
+def load(*sources: str | Tuple[str, ...] | dict | Tuple[dict, ...],
          meta_env_prefix: str = 'P_',
          meta_args_prefix: str = '',
          env_prefix: str = 'P_',
@@ -75,7 +75,9 @@ def parse(parsers: List[Parser], default_profile: str, target_profile: str):
 def build_parsers(sources: List[str], meta: Dict[str, any]):
     parsers = []
     for source in sources:
-        if source == ARGS_SOURCE:
+        if isinstance(source, dict):
+            parser = DictParser(source)
+        elif source == ARGS_SOURCE:
             parser = ArgsParser(meta.args_prefix, meta.default_profile, meta.profile, descr='Parameters')
         elif source == ENV_SOURCE:
             parser = EnvParser(meta.env_prefix, meta.default_profile, meta.profile)

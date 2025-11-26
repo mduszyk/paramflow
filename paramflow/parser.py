@@ -1,5 +1,6 @@
 import argparse
 import configparser
+import copy
 import json
 import os
 import sys
@@ -15,6 +16,18 @@ class Parser(ABC):
     @abstractmethod
     def __call__(self, *args) -> Dict[str, any]:
         pass
+
+
+class DictParser(Parser):
+
+    def __init__(self, params):
+        self.params = params
+
+    def __call__(self, *args) -> Dict[str, any]:
+        return {
+            'default': copy.deepcopy(self.params),
+            '__source__': ['dict'],
+        }
 
 
 class TomlParser(Parser):
