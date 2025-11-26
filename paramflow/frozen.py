@@ -1,7 +1,7 @@
 from typing import Union, List, Dict
 
 
-class FrozenAttrDict(dict):
+class ParamsDict(dict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,7 +20,7 @@ class FrozenAttrDict(dict):
         raise TypeError('FrozenAttrDict is immutable')
 
 
-class FrozenList(list):
+class ParamsList(list):
 
     def __setitem__(self, index, value):
         raise TypeError('FrozenList is immutable')
@@ -53,7 +53,7 @@ class FrozenList(list):
         raise TypeError('FrozenList is immutable')
 
 
-def freeze(params: Union[List[any], Dict[str, any]]) -> Union[FrozenList[any], FrozenAttrDict[str, any]]:
+def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList[any], ParamsDict[str, any]]:
     """
     Recursively freeze dictionaries and list making them read-only. Frozen dict profides attribute-style access.
     :param params: parameters as python dict and list tree
@@ -63,16 +63,16 @@ def freeze(params: Union[List[any], Dict[str, any]]) -> Union[FrozenList[any], F
         for key, value in params.items():
             if isinstance(value, dict) or isinstance(value, list):
                 params[key] = freeze(value)
-        return FrozenAttrDict(params)
+        return ParamsDict(params)
     elif isinstance(params, list):
         for i in range(len(params)):
             value = params[i]
             if isinstance(value, dict) or isinstance(value, list):
                 params[i] = freeze(value)
-        return FrozenList(params)
+        return ParamsList(params)
 
 
-def unfreeze(params: Union[FrozenList[any], FrozenAttrDict[str, any]]) -> Union[List[any], Dict[str, any]]:
+def unfreeze(params: Union[ParamsList[any], ParamsDict[str, any]]) -> Union[List[any], Dict[str, any]]:
     """
     Recursively unfreeze tree of frozen dicts and lists.
     Useful for serialization, where deserialization of immutable dict or list may fail.

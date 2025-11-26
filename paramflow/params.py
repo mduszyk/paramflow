@@ -5,7 +5,7 @@ from functools import reduce
 from typing import List, Dict, Optional, Union, Final, Type, Tuple
 
 from paramflow.convert import convert_type
-from paramflow.frozen import freeze, FrozenAttrDict
+from paramflow.frozen import freeze, ParamsDict
 from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser
 
 ENV_SOURCE: Final[str] = 'env'
@@ -19,7 +19,7 @@ def load(*sources: Tuple[str, ...],
          args_prefix: str = '',
          profile_key: str = 'profile',
          default_profile: str = 'default',
-         profile: Optional[str] = None) -> FrozenAttrDict[str, any]:
+         profile: Optional[str] = None) -> ParamsDict[str, any]:
     """
     Load parameters form multiple sources, layer them on top of each other and activate profile.
     Activation of profile means learying it on top of the default profile.

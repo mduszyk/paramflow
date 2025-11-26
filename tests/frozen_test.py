@@ -1,4 +1,4 @@
-from paramflow.frozen import freeze, unfreeze, FrozenList, FrozenAttrDict
+from paramflow.frozen import freeze, unfreeze, ParamsList, ParamsDict
 
 
 def test_freeze():
@@ -11,13 +11,13 @@ def test_freeze():
             'dict': {'foo': 1, 'bar': 2},
         }
     })
-    assert isinstance(params, FrozenAttrDict)
+    assert isinstance(params, ParamsDict)
     assert params.default.name == 'test'
     assert params.default.lr == 1e-3
     assert params.default.debug
-    assert isinstance(params.default.list, FrozenList)
+    assert isinstance(params.default.list, ParamsList)
     assert params.default.list[2] == 3
-    assert isinstance(params.default.dict, FrozenAttrDict)
+    assert isinstance(params.default.dict, ParamsDict)
     assert params.default.dict.foo == 1
     assert params.default.dict.bar == 2
 
