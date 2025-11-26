@@ -12,7 +12,7 @@ ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
 
 
-def load(*sources: Tuple[str, ...],
+def load(*sources: str | Tuple[str, ...],
          meta_env_prefix: str = 'P_',
          meta_args_prefix: str = '',
          env_prefix: str = 'P_',
