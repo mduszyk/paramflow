@@ -230,3 +230,20 @@ def test_dict_params(temp_file, monkeypatch):
     assert params.lr == 1e-3
     assert params.debug
     assert params.name == 'test'
+
+
+def test_help(temp_file, monkeypatch, capsys):
+    file_content = (
+        """
+        [default]
+        lr = 1e-3
+        debug = true
+        """
+    )
+    file_path = temp_file(file_content, '.toml')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--help'])
+    with pytest.raises(SystemExit) as exc:
+        pf.load(file_path)
+    captured = capsys.readouterr()
+    assert 'Meta-parameters' in captured.out
+    assert 'Parameters' in captured.out

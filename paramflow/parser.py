@@ -176,7 +176,10 @@ class ArgsParser(Parser):
                 args_params[key] = arg_value
 
         if self.consume_args:
+            help = '--help' in sys.argv
             sys.argv = [sys.argv[0]] + remaining
+            if help:
+                sys.argv.append('--help')
         else:
             it = iter(remaining)
             for arg_name, arg_value in zip(it, it):

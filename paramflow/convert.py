@@ -36,15 +36,10 @@ def convert_type(dst_value, src_value, path=''):
 
 
 def infer_type(value: str):
-    result = value
-    if '.' in value:
+    try:
+        return int(value)
+    except ValueError:
         try:
-            result = float(value)
+            return float(value)
         except ValueError:
-            pass
-    else:
-        try:
-            result = int(value)
-        except ValueError:
-            pass
-    return result
+            return value
