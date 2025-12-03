@@ -26,7 +26,7 @@ class DictParser(Parser):
     def __call__(self, *args) -> Dict[str, any]:
         return {
             'default': copy.deepcopy(self.params),
-            '__source__': ['dict'],
+            '__source__': [self.params],
         }
 
 
