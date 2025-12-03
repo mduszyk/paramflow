@@ -1,12 +1,12 @@
-import argparse
-import os
+import logging
 import sys
-from functools import reduce
-from typing import List, Dict, Optional, Union, Final, Type, Tuple
+from typing import List, Dict, Optional, Final, Tuple
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, ParamsDict
 from paramflow.parser import PARSER_MAP, EnvParser, ArgsParser, DotEnvParser, Parser, DictParser
+
+logger = logging.getLogger(__name__)
 
 ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
@@ -34,6 +34,7 @@ def load(*sources: str | Tuple[str, ...] | dict | Tuple[dict, ...],
     :return: read-only parameters as frozen dict
     """
 
+    logger.debug('Reading meta params layer %d, source: %s', 0, 'pf.load')
     meta = {
         'sources': sources,
         'env_prefix': env_prefix,
@@ -43,7 +44,9 @@ def load(*sources: str | Tuple[str, ...] | dict | Tuple[dict, ...],
         profile_key: profile,
         '__source__': ['pf.load'],
     }
+    logger.debug('Reading meta params layer %d, source: %s', 1, 'env')
     meta_env_parser = EnvParser(meta_env_prefix, 'default')
+    logger.debug('Reading meta params layer %d, source: %s', 2, 'args')
     meta_args_parser = ArgsParser(meta_args_prefix, 'default',
                                   no_exit=True, consume_args=True, descr='Meta-parameters')
     meta = deep_merge(meta, meta_env_parser(meta))
@@ -74,7 +77,8 @@ def parse(parsers: List[Parser], default_profile: str, target_profile: str):
 
 def build_parsers(sources: List[str], meta: Dict[str, any]):
     parsers = []
-    for source in sources:
+    for i, source in enumerate(sources):
+        logger.info('Reading params layer %d, source: %s', i, source)
         if isinstance(source, dict):
             parser = DictParser(source)
         elif source == ARGS_SOURCE:
