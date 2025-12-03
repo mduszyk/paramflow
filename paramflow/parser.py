@@ -5,7 +5,7 @@ import json
 import os
 import sys
 from abc import ABC, abstractmethod
-from typing import Dict, Final, Type
+from typing import Dict, Final, Type, cast
 
 import yaml
 
@@ -13,6 +13,11 @@ from paramflow.convert import infer_type
 
 
 class Parser(ABC):
+
+    @abstractmethod
+    def __init__(self, *args) -> None:
+        pass
+
     @abstractmethod
     def __call__(self, *args) -> Dict[str, any]:
         pass
@@ -78,7 +83,7 @@ class IniParser(Parser):
     def __call__(self, *args) -> Dict[str, any]:
         config = configparser.ConfigParser()
         config.read(self.path)
-        params = {section: dict(config.items(section)) for section in config.sections()}
+        params: Dict[str, any] = {section: dict(config.items(section)) for section in config.sections()}
         if len(params) > 0:
             params['__source__'] = [self.path]
         return params
@@ -96,7 +101,7 @@ class DotEnvParser(Parser):
         from dotenv import dotenv_values
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
-        params = params.get(self.default_profile, params)
+        params: Dict[str, any] = params.get(self.default_profile, params)
         env = dotenv_values(self.path)
         params = get_env_params(env, self.prefix, params)
         if len(params) > 0:
@@ -128,8 +133,9 @@ class EnvParser(Parser):
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
-        env_params = get_env_params(os.environ, self.prefix, params)
-        result = env_params
+        env = cast(Dict[str, any], os.environ)
+        env_params = get_env_params(env, self.prefix, params)
+        result: Dict[str, any] = env_params
         if len(env_params) > 0:
             if self.target_profile is not None:
                 result = {self.target_profile: env_params}
@@ -186,7 +192,7 @@ class ArgsParser(Parser):
                 key = arg_name.replace('--', '').replace(self.prefix, '')
                 args_params[key] = infer_type(arg_value)
 
-        result = args_params
+        result: Dict[str, any] = args_params
         if len(args_params) > 0:
             if self.target_profile is not None:
                 result = {self.target_profile: args_params}

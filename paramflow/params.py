@@ -19,10 +19,10 @@ def load(*sources: str | Tuple[str, ...] | dict | Tuple[dict, ...],
          args_prefix: str = '',
          profile_key: str = 'profile',
          default_profile: str = 'default',
-         profile: Optional[str] = None) -> ParamsDict[str, any]:
+         profile: Optional[str] = None) -> ParamsDict:
     """
     Load parameters form multiple sources, layer them on top of each other and activate profile.
-    Activation of profile means learying it on top of the default profile.
+    Activation of profile means layering it on top of the default profile.
     :param sources: file or multiple files to load parameters from
     :param meta_env_prefix: prefix for env vars that are used to overwrite meta params
     :param meta_args_prefix: prefix for command-line arguments to overwrite meta params
@@ -75,7 +75,7 @@ def parse(parsers: List[Parser], default_profile: str, target_profile: str):
     return freeze(params)
 
 
-def build_parsers(sources: List[str], meta: Dict[str, any]):
+def build_parsers(sources: List[str], meta: ParamsDict):
     parsers = []
     for i, source in enumerate(sources):
         logger.info('Reading params layer %d, source: %s', i, source)

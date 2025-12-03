@@ -55,9 +55,9 @@ class ParamsList(list):
         raise TypeError(f'{self.__class__.__name__} is immutable')
 
 
-def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList[any], ParamsDict[str, any]]:
+def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList, ParamsDict]:
     """
-    Recursively freeze dictionaries and list making them read-only. Frozen dict profides attribute-style access.
+    Recursively freeze dictionaries and list making them read-only. Frozen dict provides attribute-style access.
     :param params: parameters as python dict and list tree
     :return: frozen parameters
     """
@@ -66,7 +66,8 @@ def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList[any], P
             if isinstance(value, dict) or isinstance(value, list):
                 params[key] = freeze(value)
         return ParamsDict(params)
-    elif isinstance(params, list):
+    #elif isinstance(params, list):
+    else:
         for i in range(len(params)):
             value = params[i]
             if isinstance(value, dict) or isinstance(value, list):
@@ -74,7 +75,7 @@ def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList[any], P
         return ParamsList(params)
 
 
-def unfreeze(params: Union[ParamsList[any], ParamsDict[str, any]]) -> Union[List[any], Dict[str, any]]:
+def unfreeze(params: Union[ParamsList, ParamsDict]) -> Union[List[any], Dict[str, any]]:
     """
     Recursively unfreeze tree of frozen dicts and lists.
     Useful for serialization, where deserialization of immutable dict or list may fail.
@@ -84,13 +85,14 @@ def unfreeze(params: Union[ParamsList[any], ParamsDict[str, any]]) -> Union[List
     if isinstance(params, dict):
         params = dict(params)
         for key, value in params.items():
-            if isinstance(value, dict) or isinstance(value, list):
+            if isinstance(value, ParamsDict) or isinstance(value, ParamsList):
                 params[key] = unfreeze(value)
         return params
-    elif isinstance(params, list):
+    #elif isinstance(params, list):
+    else:
         params = list(params)
         for i in range(len(params)):
             value = params[i]
-            if isinstance(value, dict) or isinstance(value, list):
+            if isinstance(value, ParamsDict) or isinstance(value, ParamsList):
                 params[i] = unfreeze(value)
         return params
