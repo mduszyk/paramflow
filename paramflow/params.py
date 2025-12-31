@@ -78,7 +78,7 @@ def parse(parsers: List[Parser], default_profile: str, target_profile: str):
 def build_parsers(sources: List[str], meta: ParamsDict):
     parsers = []
     for i, source in enumerate(sources):
-        logger.info('Reading params layer %d, source: %s', i, source)
+        logger.debug('Reading params layer %d, source: %s', i, source)
         if isinstance(source, dict):
             parser = DictParser(source)
         elif source == ARGS_SOURCE:
