@@ -55,7 +55,7 @@ class ParamsList(list):
         raise TypeError(f'{self.__class__.__name__} is immutable')
 
 
-def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList, ParamsDict]:
+def freeze(params: Union[List[Any], Dict[str, Any]]) -> Union[ParamsList, ParamsDict]:
     """
     Recursively freeze dictionaries and list making them read-only. Frozen dict provides attribute-style access.
     :param params: parameters as python dict and list tree
@@ -75,7 +75,7 @@ def freeze(params: Union[List[any], Dict[str, any]]) -> Union[ParamsList, Params
         return ParamsList(params)
 
 
-def unfreeze(params: Union[ParamsList, ParamsDict]) -> Union[List[any], Dict[str, any]]:
+def unfreeze(params: Union[ParamsList, ParamsDict]) -> Union[List[Any], Dict[str, Any]]:
     """
     Recursively unfreeze tree of frozen dicts and lists.
     Useful for serialization, where deserialization of immutable dict or list may fail.

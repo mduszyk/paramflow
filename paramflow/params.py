@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import List, Dict, Optional, Final, Tuple
+from typing import Any, List, Dict, Optional, Final, Tuple
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, ParamsDict
@@ -95,7 +95,7 @@ def build_parsers(sources: List[str], meta: ParamsDict):
     return parsers
 
 
-def activate_profile(params: Dict[str, any], default_profile: str, profile: str) -> Dict[str, any]:
+def activate_profile(params: Dict[str, Any], default_profile: str, profile: str) -> Dict[str, Any]:
     profile_params = params.get(default_profile)
     if profile_params is None:
         profile_params = params  # profiles disabled

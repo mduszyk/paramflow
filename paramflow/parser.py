@@ -5,7 +5,7 @@ import json
 import os
 import sys
 from abc import ABC, abstractmethod
-from typing import Dict, Final, Type, cast
+from typing import Any, Dict, Final, Type, cast
 
 import yaml
 
@@ -19,7 +19,7 @@ class Parser(ABC):
         pass
 
     @abstractmethod
-    def __call__(self, *args) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, Any]:
         pass
 
 
@@ -28,7 +28,7 @@ class DictParser(Parser):
     def __init__(self, params):
         self.params = params
 
-    def __call__(self, *args) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, Any]:
         return {
             'default': copy.deepcopy(self.params),
             '__source__': [self.params],
@@ -40,7 +40,7 @@ class TomlParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self, *args) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, Any]:
         import tomllib
         with open(self.path, 'rb') as fp:
             params = tomllib.load(fp)
@@ -54,7 +54,7 @@ class YamlParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self, *args) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, Any]:
         with open(self.path, 'r') as fp:
             params = yaml.safe_load(fp)
         if len(params) > 0:
@@ -67,7 +67,7 @@ class JsonParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self, *args) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, Any]:
         with open(self.path, 'r') as fp:
             params = json.load(fp)
         if len(params) > 0:
@@ -80,10 +80,10 @@ class IniParser(Parser):
     def __init__(self, path: str):
         self.path = path
 
-    def __call__(self, *args) -> Dict[str, any]:
+    def __call__(self, *args) -> Dict[str, Any]:
         config = configparser.ConfigParser()
         config.read(self.path)
-        params: Dict[str, any] = {section: dict(config.items(section)) for section in config.sections()}
+        params: Dict[str, Any] = {section: dict(config.items(section)) for section in config.sections()}
         if len(params) > 0:
             params['__source__'] = [self.path]
         return params
@@ -97,11 +97,11 @@ class DotEnvParser(Parser):
         self.default_profile = default_profile
         self.target_profile = target_profile
 
-    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+    def __call__(self, params: Dict[str, Any]) -> Dict[str, Any]:
         from dotenv import dotenv_values
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
-        params: Dict[str, any] = params.get(self.default_profile, params)
+        params: Dict[str, Any] = params.get(self.default_profile, params)
         env = dotenv_values(self.path)
         params = get_env_params(env, self.prefix, params)
         if len(params) > 0:
@@ -112,7 +112,7 @@ class DotEnvParser(Parser):
         return params
 
 
-def get_env_params(env: Dict[str, any], prefix: str, ref_params: Dict[str, any]) -> Dict[str, any]:
+def get_env_params(env: Dict[str, Any], prefix: str, ref_params: Dict[str, Any]) -> Dict[str, Any]:
     params = {}
     for env_key, env_value in env.items():
         if env_key.startswith(prefix):
@@ -129,13 +129,13 @@ class EnvParser(Parser):
         self.default_profile = default_profile
         self.target_profile = target_profile
 
-    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+    def __call__(self, params: Dict[str, Any]) -> Dict[str, Any]:
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
-        env = cast(Dict[str, any], os.environ)
+        env = cast(Dict[str, Any], os.environ)
         env_params = get_env_params(env, self.prefix, params)
-        result: Dict[str, any] = env_params
+        result: Dict[str, Any] = env_params
         if len(env_params) > 0:
             if self.target_profile is not None:
                 result = {self.target_profile: env_params}
@@ -161,7 +161,7 @@ class ArgsParser(Parser):
         self.descr = descr
         self.consume_args = consume_args
 
-    def __call__(self, params: Dict[str, any]) -> Dict[str, any]:
+    def __call__(self, params: Dict[str, Any]) -> Dict[str, Any]:
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params = params.get(self.default_profile, params)
@@ -192,7 +192,7 @@ class ArgsParser(Parser):
                 key = arg_name.replace('--', '').replace(self.prefix, '')
                 args_params[key] = infer_type(arg_value)
 
-        result: Dict[str, any] = args_params
+        result: Dict[str, Any] = args_params
         if len(args_params) > 0:
             if self.target_profile is not None:
                 result = {self.target_profile: args_params}
