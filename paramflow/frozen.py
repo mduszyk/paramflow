@@ -1,3 +1,5 @@
+import sys
+import types
 from typing import Union, List, Dict, Any
 
 
@@ -20,7 +22,13 @@ class ParamsDict(dict):
         raise TypeError(f'{self.__class__.__name__} is immutable')
 
     def __getattr__(self, key) -> Any:
-        return self[key]
+        try:
+            return self[key]
+        except KeyError:
+            caller = sys._getframe(1)
+            tb = types.TracebackType(None, caller, caller.f_lasti, caller.f_lineno)
+            exc = AttributeError(f"'{type(self).__name__}' has no param '{key}'")
+            raise exc.with_traceback(tb)
 
 class ParamsList(list):
 
@@ -66,7 +74,6 @@ def freeze(params: Union[List[Any], Dict[str, Any]]) -> Union[ParamsList, Params
             if isinstance(value, dict) or isinstance(value, list):
                 params[key] = freeze(value)
         return ParamsDict(params)
-    #elif isinstance(params, list):
     else:
         for i in range(len(params)):
             value = params[i]
@@ -88,7 +95,6 @@ def unfreeze(params: Union[ParamsList, ParamsDict]) -> Union[List[Any], Dict[str
             if isinstance(value, ParamsDict) or isinstance(value, ParamsList):
                 params[key] = unfreeze(value)
         return params
-    #elif isinstance(params, list):
     else:
         params = list(params)
         for i in range(len(params)):

@@ -2,6 +2,13 @@ default:
   name: 'dev'
   lr: 0.001
   debug: true
+  nested:
+    lr: 0.0001
+    ar:
+      - a
+      - b
+      - c
+      - d
 
 prod:
   debug: false
