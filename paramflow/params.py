@@ -119,12 +119,11 @@ def deep_merge(dst: dict, src: dict, path: str = '') -> dict:
             deep_merge(dst[src_key], src_value, f'{path}.{src_key}')
         elif isinstance(src_value, list) and isinstance(dst.get(src_key), list) and len(src_value) == len(dst[src_key]):
             for i in range(len(src_value)):
-                dst_item = dst[i]
-                current_path = f'{path}[{i}]'
-                if isinstance(src_value[i], dict) and isinstance(dst_item[i], dict):
-                    deep_merge(dst_item[i], src_value[i], current_path)
+                current_path = f'{path}.{src_key}[{i}]'
+                if isinstance(src_value[i], dict) and isinstance(dst[src_key][i], dict):
+                    deep_merge(dst[src_key][i], src_value[i], current_path)
                 else:
-                    dst_item[i] = convert_type(dst_item[i], src_value[i], current_path)
+                    dst[src_key][i] = convert_type(dst[src_key][i], src_value[i], current_path)
         else:
             dst[src_key] = convert_type(dst.get(src_key), src_value, f'{path}.{src_key}')
     return dst

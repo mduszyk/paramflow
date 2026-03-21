@@ -32,6 +32,13 @@ def test_deep_merge():
     deep_merge(dst, src)
     assert dst['default']['name'] == 'test123'
 
+def test_deep_merge_list():
+    dst = {'default': {'tags': ['a', 'b', 'c']}}
+    src = {'default': {'tags': ['x', 'y', 'z']}}
+    deep_merge(dst, src)
+    assert dst['default']['tags'] == ['x', 'y', 'z']
+
+
 def test_deep_merge_empty_dict():
     dst = {
         'default': {
