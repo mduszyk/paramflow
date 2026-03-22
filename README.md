@@ -80,7 +80,7 @@ To control the order explicitly, pass all sources as positional arguments (`'env
 params = pf.load('params.toml', 'env', 'overrides.env', 'args')
 ```
 
-To disable auto-appending of env or args sources, pass `None`:
+To disable auto-appending of env or args sources, pass `None` as env and args prefixes:
 ```python
 params = pf.load('params.toml', env_prefix=None, args_prefix=None)
 ```
@@ -91,6 +91,7 @@ Plain dicts can be mixed into the source list:
 ```python
 params = pf.load('params.toml', {'debug': False, 'extra_key': 'value'})
 ```
+This can be used to for example set default values or use params loaded into dict in completely custom way.
 
 ### Type inference
 
