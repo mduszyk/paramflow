@@ -106,6 +106,9 @@ def activate_profile(params: Dict[str, Any], default_profile: str, profile: str)
         profile_params['__source__'] = params['__source__']
     profile_params['__profile__'] = [default_profile]
     if profile is not None and profile != default_profile:
+        if profile not in params:
+            available = [k for k in params if not k.startswith('__') and k != default_profile]
+            raise ValueError(f"profile '{profile}' not found, available profiles: {available}")
         active_profile_params = params[profile]
         deep_merge(profile_params, active_profile_params)
         profile_params['__profile__'].append(profile)

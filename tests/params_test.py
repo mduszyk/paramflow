@@ -264,6 +264,23 @@ def test_deep_merge_list_of_dicts():
     assert dst['items'][1]['val'] == 2
 
 
+def test_activate_profile_missing():
+    params = {'default': {'x': 1}, 'prod': {'x': 2}}
+    with pytest.raises(ValueError, match="profile 'staging' not found"):
+        activate_profile(params, 'default', 'staging')
+
+
+def test_activate_profile_missing_lists_available():
+    params = {'default': {'x': 1}, 'prod': {'x': 2}, 'dev': {'x': 3}, '__source__': ['f.toml']}
+    with pytest.raises(ValueError) as exc:
+        activate_profile(params, 'default', 'staging')
+    msg = str(exc.value)
+    assert 'prod' in msg
+    assert 'dev' in msg
+    assert 'default' not in msg
+    assert '__source__' not in msg
+
+
 def test_activate_profile_none():
     params = {'default': {'x': 1}, 'prod': {'x': 2}}
     result = activate_profile(params, 'default', None)
