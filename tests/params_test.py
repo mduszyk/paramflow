@@ -240,6 +240,24 @@ def test_dict_params(temp_file, monkeypatch):
     assert params.name == 'test'
 
 
+def test_load_invalid_source_type(monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    with pytest.raises(TypeError, match='int'):
+        pf.load(42)
+
+
+def test_load_invalid_default_profile(temp_file, monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    with pytest.raises(ValueError, match='default_profile'):
+        pf.load(default_profile='')
+
+
+def test_load_invalid_profile_key(temp_file, monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    with pytest.raises(ValueError, match='profile_key'):
+        pf.load(profile_key='')
+
+
 def test_deep_merge_source_key():
     dst = {'__source__': ['a']}
     src = {'__source__': ['b', 'c']}
@@ -355,6 +373,14 @@ def test_build_parsers_unknown_extension():
     })
     with pytest.raises(ValueError, match=r"unsupported file format '\.xyz'"):
         build_parsers(['config.xyz'], meta)
+
+
+def test_dotenv_parser_missing_dependency(temp_file, monkeypatch):
+    dot_env = temp_file('P_NAME=alice', '.env')
+    monkeypatch.setitem(sys.modules, 'dotenv', None)
+    parser = DotEnvParser(dot_env, 'P_', 'default')
+    with pytest.raises(ImportError, match="pip install 'paramflow\\[dotenv\\]'"):
+        parser({'default': {'name': 'bob'}})
 
 
 def test_dotenv_parser_basic(temp_file):

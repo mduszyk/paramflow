@@ -34,6 +34,14 @@ def load(*sources: str | dict,
     :return: read-only parameters as frozen dict
     """
 
+    for source in sources:
+        if not isinstance(source, (str, dict)):
+            raise TypeError(f"sources must be file paths or dicts, got {type(source).__name__}")
+    if not default_profile:
+        raise ValueError("default_profile must be a non-empty string")
+    if not profile_key:
+        raise ValueError("profile_key must be a non-empty string")
+
     logger.debug('Reading meta params layer %d, source: %s', 0, 'pf.load')
     meta = {
         'sources': sources,

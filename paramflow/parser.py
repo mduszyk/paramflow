@@ -98,7 +98,13 @@ class DotEnvParser(Parser):
         self.target_profile = target_profile
 
     def __call__(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        from dotenv import dotenv_values
+        try:
+            from dotenv import dotenv_values
+        except ImportError:
+            raise ImportError(
+                f"loading '{self.path}' requires dotenv support: "
+                "pip install 'paramflow[dotenv]'"
+            )
         if self.target_profile is None and self.default_profile in params:
             self.target_profile = self.default_profile
         params: Dict[str, Any] = params.get(self.default_profile, params)
