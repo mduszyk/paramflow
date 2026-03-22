@@ -57,8 +57,9 @@ class YamlParser(Parser):
     def __call__(self, *args) -> Dict[str, Any]:
         with open(self.path, 'r') as fp:
             params = yaml.safe_load(fp)
-        if len(params) > 0:
-            params['__source__'] = [self.path]
+        if not params:
+            return {}
+        params['__source__'] = [self.path]
         return params
 
 

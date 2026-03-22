@@ -375,6 +375,20 @@ def test_build_parsers_unknown_extension():
         build_parsers(['config.xyz'], meta)
 
 
+def test_yaml_empty_file(temp_file, monkeypatch):
+    file_path = temp_file('', '.yaml')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(file_path)
+    assert params.__profile__ == ['default']
+
+
+def test_yaml_comments_only(temp_file, monkeypatch):
+    file_path = temp_file('# just a comment\n', '.yaml')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(file_path)
+    assert params.__profile__ == ['default']
+
+
 def test_dotenv_parser_missing_dependency(temp_file, monkeypatch):
     dot_env = temp_file('P_NAME=alice', '.env')
     monkeypatch.setitem(sys.modules, 'dotenv', None)
