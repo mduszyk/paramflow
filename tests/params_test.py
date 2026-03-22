@@ -6,7 +6,8 @@ from tempfile import NamedTemporaryFile
 import pytest
 
 import paramflow as pf
-from paramflow.params import activate_profile, deep_merge
+from paramflow.params import activate_profile, deep_merge, build_parsers
+from paramflow.parser import EnvParser, DictParser, get_env_params
 
 
 @pytest.fixture
@@ -237,6 +238,106 @@ def test_dict_params(temp_file, monkeypatch):
     assert params.lr == 1e-3
     assert params.debug
     assert params.name == 'test'
+
+
+def test_deep_merge_source_key():
+    dst = {'__source__': ['a']}
+    src = {'__source__': ['b', 'c']}
+    deep_merge(dst, src)
+    assert dst['__source__'] == ['a', 'b', 'c']
+
+
+def test_deep_merge_list_length_mismatch():
+    dst = {'default': {'tags': ['a', 'b']}}
+    src = {'default': {'tags': ['x', 'y', 'z']}}
+    deep_merge(dst, src)
+    assert dst['default']['tags'] == ['x', 'y', 'z']
+
+
+def test_deep_merge_list_of_dicts():
+    dst = {'items': [{'name': 'a', 'val': 1}, {'name': 'b', 'val': 2}]}
+    src = {'items': [{'val': 10}, {'name': 'B'}]}
+    deep_merge(dst, src)
+    assert dst['items'][0]['name'] == 'a'
+    assert dst['items'][0]['val'] == 10
+    assert dst['items'][1]['name'] == 'B'
+    assert dst['items'][1]['val'] == 2
+
+
+def test_activate_profile_none():
+    params = {'default': {'x': 1}, 'prod': {'x': 2}}
+    result = activate_profile(params, 'default', None)
+    assert result['x'] == 1
+    assert result['__profile__'] == ['default']
+
+
+def test_activate_profile_same_as_default():
+    params = {'default': {'x': 1}}
+    result = activate_profile(params, 'default', 'default')
+    assert result['x'] == 1
+    assert result['__profile__'] == ['default']
+
+
+def test_activate_profile_no_profile_key():
+    params = {'x': 1, 'y': 2}
+    result = activate_profile(params, 'default', None)
+    assert result['x'] == 1
+    assert result['__profile__'] == ['default']
+
+
+def test_activate_profile_source_propagation():
+    params = {
+        'default': {'x': 1},
+        '__source__': ['file.toml'],
+    }
+    result = activate_profile(params, 'default', None)
+    assert result['__source__'] == ['file.toml']
+
+
+def test_load_with_profile_kwarg(temp_file, monkeypatch):
+    file_content = """
+    [default]
+    debug = true
+    [prod]
+    debug = false
+    """
+    file_path = temp_file(file_content, '.toml')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(file_path, profile='prod')
+    assert not params.debug
+
+
+def test_get_env_params_direct():
+    env = {'P_NAME': 'alice', 'P_LR': '0.01', 'OTHER': 'ignored'}
+    ref_params = {'name': 'bob', 'lr': 0.001}
+    result = get_env_params(env, 'P_', ref_params)
+    assert result == {'name': 'alice', 'lr': '0.01'}
+
+
+def test_env_parser_no_match():
+    parser = EnvParser('ZZZNOMATCH_', 'default')
+    result = parser({'default': {'name': 'test', 'lr': 0.001}})
+    assert result == {}
+
+
+def test_dict_parser_direct():
+    data = {'name': 'test', 'lr': 0.001}
+    parser = DictParser(data)
+    result = parser()
+    assert result['default'] == data
+    assert result['__source__'] == [data]
+    assert result['default'] is not data
+
+
+def test_build_parsers_unknown_extension():
+    meta = pf.freeze({
+        'env_prefix': 'P_',
+        'args_prefix': '',
+        'default_profile': 'default',
+        'profile': None,
+    })
+    with pytest.raises(KeyError):
+        build_parsers(['config.xyz'], meta)
 
 
 def test_help(temp_file, monkeypatch, capsys):
