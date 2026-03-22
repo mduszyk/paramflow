@@ -7,7 +7,7 @@ import pytest
 
 import paramflow as pf
 from paramflow.params import activate_profile, deep_merge, build_parsers
-from paramflow.parser import EnvParser, DictParser, get_env_params
+from paramflow.parser import EnvParser, DictParser, DotEnvParser, get_env_params
 
 
 @pytest.fixture
@@ -355,6 +355,63 @@ def test_build_parsers_unknown_extension():
     })
     with pytest.raises(ValueError, match=r"unsupported file format '\.xyz'"):
         build_parsers(['config.xyz'], meta)
+
+
+def test_dotenv_parser_basic(temp_file):
+    dot_env = temp_file('P_NAME=alice\nP_LR=0.01\nOTHER=ignored', '.env')
+    parser = DotEnvParser(dot_env, 'P_', 'default')
+    result = parser({'default': {'name': 'bob', 'lr': 0.001}})
+    assert result['default']['name'] == 'alice'
+    assert result['default']['lr'] == '0.01'
+    assert result['__source__'] == [dot_env]
+
+
+def test_dotenv_parser_prefix_filter(temp_file):
+    dot_env = temp_file('P_NAME=alice\nOTHER_NAME=bob', '.env')
+    parser = DotEnvParser(dot_env, 'P_', 'default')
+    result = parser({'default': {'name': 'default_name'}})
+    assert result['default']['name'] == 'alice'
+
+
+def test_dotenv_parser_key_filter(temp_file):
+    dot_env = temp_file('P_NAME=alice\nP_UNKNOWN=xyz', '.env')
+    parser = DotEnvParser(dot_env, 'P_', 'default')
+    result = parser({'default': {'name': 'bob'}})
+    assert result['default'] == {'name': 'alice'}
+
+
+def test_dotenv_parser_no_match(temp_file):
+    dot_env = temp_file('OTHER=value', '.env')
+    parser = DotEnvParser(dot_env, 'P_', 'default')
+    result = parser({'default': {'name': 'bob'}})
+    assert result == {}
+
+
+def test_dotenv_parser_target_profile(temp_file):
+    dot_env = temp_file('P_NAME=alice', '.env')
+    parser = DotEnvParser(dot_env, 'P_', 'default', target_profile='prod')
+    result = parser({'default': {'name': 'bob'}})
+    assert result['prod']['name'] == 'alice'
+    assert result['__source__'] == [dot_env]
+
+
+def test_load_dotenv_overrides(temp_file, monkeypatch):
+    toml = temp_file('[default]\nname = "dev"\nlr = 0.001', '.toml')
+    dot_env = temp_file('P_NAME=production\nP_LR=0.0001', '.env')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(toml, dot_env)
+    assert params.name == 'production'
+    assert params.lr == 0.0001
+    assert dot_env in params.__source__
+
+
+def test_load_dotenv_type_conversion(temp_file, monkeypatch):
+    toml = temp_file('[default]\ndebug = true\nbatch_size = 32', '.toml')
+    dot_env = temp_file('P_DEBUG=false\nP_BATCH_SIZE=64', '.env')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(toml, dot_env)
+    assert params.debug == False
+    assert params.batch_size == 64
 
 
 def test_help(temp_file, monkeypatch, capsys):
