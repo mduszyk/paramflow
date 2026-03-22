@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, List, Dict, Optional, Final, Tuple
+from typing import Any, List, Dict, Optional, Final
 
 from paramflow.convert import convert_type
 from paramflow.frozen import freeze, ParamsDict
@@ -12,7 +12,7 @@ ENV_SOURCE: Final[str] = 'env'
 ARGS_SOURCE: Final[str] = 'args'
 
 
-def load(*sources: str | Tuple[str, ...] | dict | Tuple[dict, ...],
+def load(*sources: str | dict,
          meta_env_prefix: str = 'P_',
          meta_args_prefix: str = '',
          env_prefix: str = 'P_',
@@ -54,7 +54,7 @@ def load(*sources: str | Tuple[str, ...] | dict | Tuple[dict, ...],
     meta = freeze(meta)
 
     if meta.sources is None or len(meta.sources) == 0:
-        sys.exit('sources meta param is missing')
+        raise ValueError('sources meta param is missing')
 
     sources = list(meta.sources)
 
@@ -89,7 +89,10 @@ def build_parsers(sources: List[str], meta: ParamsDict):
             parser = DotEnvParser(source, meta.env_prefix, meta.default_profile, meta.profile)
         else:
             ext = source.split('.')[-1]
-            parser_class = PARSER_MAP[ext]
+            try:
+                parser_class = PARSER_MAP[ext]
+            except KeyError:
+                raise ValueError(f"unsupported file format '.{ext}' in '{source}'")
             parser = parser_class(source)
         parsers.append(parser)
     return parsers

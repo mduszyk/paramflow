@@ -336,7 +336,7 @@ def test_build_parsers_unknown_extension():
         'default_profile': 'default',
         'profile': None,
     })
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError, match=r"unsupported file format '\.xyz'"):
         build_parsers(['config.xyz'], meta)
 
 

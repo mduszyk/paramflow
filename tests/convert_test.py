@@ -27,6 +27,10 @@ def test_infer_type():
     assert type(infer_type('3.14')) is float
     assert infer_type('hello') == 'hello'
     assert type(infer_type('hello')) is str
+    assert infer_type('true') is True
+    assert infer_type('false') is False
+    assert infer_type('True') is True
+    assert infer_type('False') is False
 
 
 def test_convert_type_none_dst():

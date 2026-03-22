@@ -42,4 +42,6 @@ def infer_type(value: str):
         try:
             return float(value)
         except ValueError:
+            if value.lower() in ('true', 'false'):
+                return value.lower() == 'true'
             return value
