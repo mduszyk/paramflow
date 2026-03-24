@@ -2,7 +2,9 @@
 [![tests](https://github.com/mduszyk/paramflow/actions/workflows/test.yml/badge.svg)](https://github.com/mduszyk/paramflow/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/paramflow)](https://pypi.org/project/paramflow/)
 
-> One `pf.load()` call is all you need, the result is a plain Python dict, and env and CLI args are handled.
+- one `pf.load()` call
+- result is a plain Python dict
+- env vars and CLI args handled automatically
 
 ParamFlow is a lightweight library for layered configuration management, tailored for machine learning projects and any application that needs to merge parameters from multiple sources. It merges files, environment variables, and CLI arguments in a defined order, activates named profiles, and returns a read-only, attribute-accessible dict that is fully compatible with the Python `dict` API.
 
