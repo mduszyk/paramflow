@@ -144,16 +144,18 @@ def get_env_params(env: Dict[str, Any], prefix: str, ref_params: Dict[str, Any])
         if env_key.startswith(prefix):
             key = env_key.replace(prefix, '', 1).lower()
             keys = key.split('__')
-            ref = ref_params
-            for k in keys:
-                if not isinstance(ref, dict):
-                    ref = _MISSING
-                    break
-                ref = ref.get(k, _MISSING)
+            if ref_params:
+                ref = ref_params
+                for k in keys:
+                    if not isinstance(ref, dict):
+                        ref = _MISSING
+                        break
+                    ref = ref.get(k, _MISSING)
+                    if ref is _MISSING:
+                        break
                 if ref is _MISSING:
-                    break
-            if ref is not _MISSING:
-                _set_nested(params, keys, env_value)
+                    continue
+            _set_nested(params, keys, env_value)
     return params
 
 
@@ -205,7 +207,7 @@ class ArgsParser(Parser):
             parser = NoExitArgumentParser(description=self.descr)
         else:
             parser = argparse.ArgumentParser(description=self.descr)
-        flat_params = _flatten_params(params)
+        flat_params = {k: v for k, v in _flatten_params(params).items() if not k.startswith('__')}
         for key, value in flat_params.items():
             typ = type(value)
             if typ is list or typ is bool or typ is tuple or value is None:

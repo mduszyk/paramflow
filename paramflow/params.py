@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from typing import Any, List, Dict, Optional, Final
 
@@ -61,10 +62,12 @@ def load(*sources: str | dict,
     meta = deep_merge(meta, meta_args_parser(meta))
     meta = freeze(meta)
 
-    if meta.sources is None or len(meta.sources) == 0:
-        raise ValueError('sources meta param is missing')
+    sources = list(meta.sources) if meta.sources else []
 
-    sources = list(meta.sources)
+    if len(sources) == 0:
+        dotenv_path = os.path.join(os.getcwd(), '.env')
+        if os.path.exists(dotenv_path):
+            sources.append(dotenv_path)
 
     if ENV_SOURCE not in sources and meta.env_prefix is not None:
         sources.append(ENV_SOURCE)
