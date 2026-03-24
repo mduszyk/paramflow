@@ -41,7 +41,7 @@ pip install "paramflow[dotenv]"
 | YAML   | `.yaml`   | |
 | JSON   | `.json`   | |
 | INI    | `.ini`    | Values are type-inferred (`int`, `float`, `bool`, `str`) |
-| dotenv | `.env`    | Requires `paramflow[dotenv]`; filtered by prefix |
+| dotenv | `.env`    | Requires `paramflow[dotenv]`; values type-inferred |
 
 ## Basic usage
 
@@ -122,7 +122,7 @@ Plain dicts can be mixed into the source list:
 ```python
 params = pf.load('params.toml', {'debug': False, 'extra_key': 'value'})
 ```
-This can be used to for example set default values or use params loaded into dict in completely custom way.
+This can be used to set default values, or to inject params loaded via a completely custom method. Note: a plain dict without a `'default'` key is treated as profile-less and merged directly — wrap it in `{'default': {...}}` if you want it to participate in profile layering.
 
 ### Type inference
 
@@ -162,7 +162,7 @@ python app.py --a__b__c 42
 
 ### Env vars and CLI args key behaviour
 
-Any env var with the prefix and any CLI arg is accepted. If the key already exists in the config, the reference type is used for conversion. If it doesn't exist, `infer_type` is applied — same behaviour as file-free mode.
+Any env var with the prefix and any CLI arg is accepted — including keys not present in the config file. If the key exists in the config, the reference type is used for conversion. If it doesn't exist, `infer_type` is applied and the key is added to the result — same behaviour as file-free mode.
 
 ## Profiles
 
@@ -193,18 +193,6 @@ P_PROFILE=prod python app.py
 Or directly in code:
 ```python
 params = pf.load('params.toml', profile='prod')
-```
-
-## Overriding parameters at runtime
-
-Any parameter can be overridden on the command line:
-```sh
-python app.py --profile prod --learning_rate 0.0001 --batch_size 64
-```
-
-Or via environment variable (default prefix `P_`, uppercased):
-```sh
-P_LEARNING_RATE=0.0001 python app.py
 ```
 
 ## Meta-parameter layering
@@ -240,12 +228,14 @@ print(params.__profile__)  # ['default']
 
 ## Freezing and unfreezing
 
-`pf.load` returns a `ParamsDict` — an immutable, attribute-accessible dict. You can freeze/unfreeze manually when needed (e.g. for serialization):
+`pf.load` returns a `ParamsDict` — an immutable, attribute-accessible dict. You can freeze/unfreeze manually when needed (e.g. when you need a mutable copy):
 
 ```python
 plain = pf.unfreeze(params)   # convert to plain dict/list tree
 frozen = pf.freeze(plain)     # convert back to ParamsDict/ParamsList
 ```
+
+Lists in the result are wrapped in `ParamsList`, an immutable list subclass.
 
 Accessing a missing key raises `AttributeError` with the parameter name:
 ```python
@@ -346,6 +336,15 @@ dev:
 prod:
   debug: false
   database_url: "mysql://prod:3306/myapp"
+```
+
+**`app.py`**
+```python
+import paramflow as pf
+
+params = pf.load('params.yaml')
+print(params.debug)         # False
+print(params.database_url)  # mysql://prod:3306/myapp
 ```
 
 ```sh
