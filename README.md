@@ -2,18 +2,20 @@
 [![tests](https://github.com/mduszyk/paramflow/actions/workflows/test.yml/badge.svg)](https://github.com/mduszyk/paramflow/actions/workflows/test.yml)
 [![PyPI](https://img.shields.io/pypi/v/paramflow)](https://pypi.org/project/paramflow/)
 
-ParamFlow is a lightweight library for layered configuration management, tailored for machine learning projects and any application that needs to merge parameters from multiple sources. It merges files, environment variables, and CLI arguments in a defined order, activates named profiles, and returns a read-only, attribute-accessible dictionary.
+> One `pf.load()` call is all you need, the result is a plain Python dict, and env and CLI args are handled.
+
+ParamFlow is a lightweight library for layered configuration management, tailored for machine learning projects and any application that needs to merge parameters from multiple sources. It merges files, environment variables, and CLI arguments in a defined order, activates named profiles, and returns a read-only, attribute-accessible dict that is fully compatible with the Python `dict` API.
 
 **Requires Python 3.11+**
 
 ## Design philosophy
 
-ParamFlow is intentionally minimalist. You define parameters once in a config file — no schemas, no type annotations, no boilerplate. Types are inferred from the values in the config file and automatically applied when overriding via environment variables or CLI arguments. The goal is to keep configuration code as small as possible: one `pf.load()` call is all you need.
+ParamFlow is intentionally minimalist. You define parameters once in a config file — no schemas, no type annotations, no boilerplate. Types are inferred from the values in the config file and automatically applied when overriding via environment variables or CLI arguments. One `pf.load()` call is all you need, and the result is a plain Python dict — works anywhere a dict does: `json.dumps`, `**unpacking`, serialization libraries, all without conversion.
 
 ## Features
 - **Layered configuration**: Merge parameters from files, environment variables, and CLI arguments in a defined order.
 - **Profile support**: Manage multiple named parameter sets; activate one at runtime.
-- **Immutable result**: Parameters are returned as a frozen, attribute-accessible dictionary.
+- **Immutable result**: Parameters are returned as a frozen, attribute-accessible dict fully compatible with the Python `dict` API — works with `json.dumps`, `**unpacking`, and any serialization library without conversion.
 - **Schema-free type inference**: Types come from the config file values — no annotations required.
 - **Auto-generated CLI parser**: Every parameter becomes a `--flag` automatically, with types and defaults inferred from the config.
 - **Layered meta-parameters**: `paramflow` configures itself (sources, profile, prefixes) using the same layered approach.
