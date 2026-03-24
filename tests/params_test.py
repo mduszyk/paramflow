@@ -7,7 +7,7 @@ import pytest
 
 import paramflow as pf
 from paramflow.params import activate_profile, deep_merge, build_parsers
-from paramflow.parser import EnvParser, DictParser, DotEnvParser, get_env_params
+from paramflow.parser import EnvParser, DictParser, DotEnvParser, get_env_params, _flatten_params, _set_nested
 
 
 @pytest.fixture
@@ -387,6 +387,96 @@ def test_yaml_comments_only(temp_file, monkeypatch):
     monkeypatch.setattr(sys, 'argv', ['test.py'])
     params = pf.load(file_path)
     assert params.__profile__ == ['default']
+
+
+def test_set_nested():
+    d = {}
+    _set_nested(d, ['a', 'b', 'c'], 42)
+    assert d == {'a': {'b': {'c': 42}}}
+
+
+def test_set_nested_sibling_keys():
+    d = {}
+    _set_nested(d, ['a', 'x'], 1)
+    _set_nested(d, ['a', 'y'], 2)
+    assert d == {'a': {'x': 1, 'y': 2}}
+
+
+def test_flatten_params():
+    params = {'lr': 0.001, 'optimizer': {'type': 'adam', 'momentum': 0.9}}
+    flat = _flatten_params(params)
+    assert flat == {'lr': 0.001, 'optimizer__type': 'adam', 'optimizer__momentum': 0.9}
+
+
+def test_flatten_params_deep():
+    params = {'a': {'b': {'c': 1}}}
+    flat = _flatten_params(params)
+    assert flat == {'a__b__c': 1}
+
+
+def test_get_env_params_nested(monkeypatch):
+    env = {'P_OPTIMIZER__LR': '0.0001', 'P_OPTIMIZER__MOMENTUM': '0.95'}
+    ref_params = {'optimizer': {'lr': 0.001, 'momentum': 0.9}}
+    result = get_env_params(env, 'P_', ref_params)
+    assert result == {'optimizer': {'lr': '0.0001', 'momentum': '0.95'}}
+
+
+def test_get_env_params_nested_missing_key():
+    env = {'P_OPTIMIZER__UNKNOWN': 'value'}
+    ref_params = {'optimizer': {'lr': 0.001}}
+    result = get_env_params(env, 'P_', ref_params)
+    assert result == {}
+
+
+def test_env_nested_override(temp_file, monkeypatch):
+    file_content = """
+    default:
+      optimizer:
+        lr: 0.001
+        momentum: 0.9
+    """
+    file_path = temp_file(file_content, '.yaml')
+    monkeypatch.setenv('P_OPTIMIZER__LR', '0.0001')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(file_path)
+    assert params.optimizer.lr == 0.0001
+    assert params.optimizer.momentum == 0.9
+
+
+def test_args_nested_override(temp_file, monkeypatch):
+    file_content = """
+    default:
+      optimizer:
+        lr: 0.001
+        momentum: 0.9
+    """
+    file_path = temp_file(file_content, '.yaml')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--optimizer__lr', '0.0001'])
+    params = pf.load(file_path)
+    assert params.optimizer.lr == 0.0001
+    assert params.optimizer.momentum == 0.9
+
+
+def test_args_nested_three_levels(temp_file, monkeypatch):
+    file_content = """
+    default:
+      a:
+        b:
+          c: 1
+    """
+    file_path = temp_file(file_content, '.yaml')
+    monkeypatch.setattr(sys, 'argv', ['test.py', '--a__b__c', '99'])
+    params = pf.load(file_path)
+    assert params.a.b.c == 99
+
+
+def test_dotenv_nested_override(temp_file, monkeypatch):
+    toml = temp_file('[default]\n[default.optimizer]\nlr = 0.001\nmomentum = 0.9', '.toml')
+    dot_env = temp_file('P_OPTIMIZER__LR=0.0001', '.env')
+    monkeypatch.setattr(sys, 'argv', ['test.py'])
+    params = pf.load(toml, dot_env)
+    assert params.optimizer.lr == 0.0001
+    assert params.optimizer.momentum == 0.9
 
 
 def test_dotenv_parser_missing_dependency(temp_file, monkeypatch):

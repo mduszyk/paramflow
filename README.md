@@ -17,7 +17,7 @@ ParamFlow is intentionally minimalist. You define parameters once in a config fi
 - **Schema-free type inference**: Types come from the config file values — no annotations required.
 - **Auto-generated CLI parser**: Every parameter becomes a `--flag` automatically, with types and defaults inferred from the config.
 - **Layered meta-parameters**: `paramflow` configures itself (sources, profile, prefixes) using the same layered approach.
-- **Nested configuration**: Deep-merges nested dicts and same-length lists across layers.
+- **Nested configuration**: Deep-merges nested dicts across layers; individual subkeys overridable via `key__subkey` syntax in env vars and CLI args.
 
 ## Installation
 ```sh
@@ -96,6 +96,32 @@ This can be used to for example set default values or use params loaded into dic
 ### Type inference
 
 No type declarations are needed anywhere. The type of each value in the config file is used as the target type when merging from env vars or CLI args. For example, if `batch_size = 32` is in the config, then `--batch_size 64` from the CLI is automatically converted to `int`. Booleans, floats, dicts, and lists all work the same way.
+
+### Nested parameters
+
+Nested parameters can be overridden using `__` (double underscore) as the separator, both in env vars and CLI args:
+
+**`params.toml`**
+```toml
+[default.optimizer]
+lr = 0.001
+momentum = 0.9
+```
+
+Override a single subkey via CLI:
+```sh
+python app.py --optimizer__lr 0.0001
+```
+
+Or via environment variable:
+```sh
+P_OPTIMIZER__LR=0.0001 python app.py
+```
+
+Any depth is supported:
+```sh
+python app.py --a__b__c 42
+```
 
 ### Key filtering for env vars and CLI args
 

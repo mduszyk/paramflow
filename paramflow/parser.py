@@ -11,6 +11,25 @@ import yaml
 
 from paramflow.convert import infer_type
 
+_MISSING = object()
+
+
+def _set_nested(d: Dict[str, Any], keys: list, value: Any) -> None:
+    for key in keys[:-1]:
+        d = d.setdefault(key, {})
+    d[keys[-1]] = value
+
+
+def _flatten_params(params: Dict[str, Any], prefix: str = '') -> Dict[str, Any]:
+    result = {}
+    for key, value in params.items():
+        full_key = f'{prefix}__{key}' if prefix else key
+        if isinstance(value, dict):
+            result.update(_flatten_params(value, full_key))
+        else:
+            result[full_key] = value
+    return result
+
 
 class Parser(ABC):
 
@@ -123,9 +142,18 @@ def get_env_params(env: Dict[str, Any], prefix: str, ref_params: Dict[str, Any])
     params = {}
     for env_key, env_value in env.items():
         if env_key.startswith(prefix):
-            key = env_key.replace(prefix, '').lower()
-            if key in ref_params:
-                params[key] = env_value
+            key = env_key.replace(prefix, '', 1).lower()
+            keys = key.split('__')
+            ref = ref_params
+            for k in keys:
+                if not isinstance(ref, dict):
+                    ref = _MISSING
+                    break
+                ref = ref.get(k, _MISSING)
+                if ref is _MISSING:
+                    break
+            if ref is not _MISSING:
+                _set_nested(params, keys, env_value)
     return params
 
 
@@ -169,24 +197,26 @@ class ArgsParser(Parser):
         self.consume_args = consume_args
 
     def __call__(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        if self.target_profile is None and self.default_profile in params:
-            self.target_profile = self.default_profile
+        target_profile = self.target_profile
+        if target_profile is None and self.default_profile in params:
+            target_profile = self.default_profile
         params = params.get(self.default_profile, params)
         if self.no_exit:
             parser = NoExitArgumentParser(description=self.descr)
         else:
             parser = argparse.ArgumentParser(description=self.descr)
-        for key, value in params.items():
+        flat_params = _flatten_params(params)
+        for key, value in flat_params.items():
             typ = type(value)
-            if typ is dict or typ is list or typ is bool or typ is tuple or value is None:
+            if typ is list or typ is bool or typ is tuple or value is None:
                 typ = str
             parser.add_argument(f'--{self.prefix}{key}', type=typ, default=None, help=f'{key} = {value}')
         args, remaining = parser.parse_known_args()
         args_params = {}
         for arg_key, arg_value in args.__dict__.items():
             if arg_value is not None:
-                key = arg_key.replace(self.prefix, '')
-                args_params[key] = arg_value
+                key = arg_key.replace(self.prefix, '', 1)
+                _set_nested(args_params, key.split('__'), arg_value)
 
         if self.consume_args:
             help = '--help' in sys.argv
@@ -196,15 +226,14 @@ class ArgsParser(Parser):
         else:
             it = iter(remaining)
             for arg_name, arg_value in zip(it, it):
-                key = arg_name.replace('--', '').replace(self.prefix, '')
-                args_params[key] = infer_type(arg_value)
+                key = arg_name.replace('--', '', 1).replace(self.prefix, '', 1)
+                _set_nested(args_params, key.split('__'), infer_type(arg_value))
 
         result: Dict[str, Any] = args_params
         if len(args_params) > 0:
-            if self.target_profile is not None:
-                result = {self.target_profile: args_params}
-            if len(args_params) > 0:
-                result['__source__'] = ['args']
+            if target_profile is not None:
+                result = {target_profile: args_params}
+            result['__source__'] = ['args']
         return result
 
 
