@@ -124,7 +124,13 @@ This can be used to for example set default values or use params loaded into dic
 
 ### Type inference
 
-No type declarations are needed anywhere. The type of each value in the config file is used as the target type when merging from env vars or CLI args. For example, if `batch_size = 32` is in the config, then `--batch_size 64` from the CLI is automatically converted to `int`. Booleans, floats, dicts, and lists all work the same way.
+No type declarations are needed anywhere. Types are handled automatically in all cases:
+
+- **Config file present** (TOML, YAML, JSON): the type of each value in the config is used as the target type when overriding via env vars or CLI args. `batch_size = 32` in the config means `--batch_size 64` and `P_BATCH_SIZE=64` both produce `int(64)`.
+- **No config file** (pure env/args): values are inferred in order — `int`, `float`, `bool`, then `str`. `P_LR=0.001` produces `float(0.001)`, `P_DEBUG=true` produces `bool(True)`.
+- **INI files**: since INI has no native types, `infer_type` is applied to every value on load, same as the no-schema case.
+
+The result is consistent behavior regardless of source format — you always get the most specific type possible without declaring anything.
 
 ### Nested parameters
 
