@@ -18,7 +18,7 @@ ParamFlow is intentionally minimalist. You define parameters once in a config fi
 - **Layered configuration**: Merge parameters from files, environment variables, and CLI arguments in a defined order. Config file is optional — pure env/args loading is supported.
 - **`.env` auto-discovery**: A `.env` file in the current directory is picked up automatically when no sources are specified.
 - **Profile support**: Manage multiple named parameter sets; activate one at runtime.
-- **Immutable result**: Parameters are returned as a frozen, attribute-accessible dict fully compatible with the Python `dict` API — works with `json.dumps`, `**unpacking`, and any serialization library without conversion.
+- **Immutable result**: Parameters are returned as a frozen, attribute-accessible dict fully compatible with the Python `dict` API.
 - **Schema-free type inference**: Types come from the config file values — no annotations required.
 - **Auto-generated CLI parser**: Every parameter becomes a `--flag` automatically, with types and defaults inferred from the config.
 - **Layered meta-parameters**: `paramflow` configures itself (sources, profile, prefixes) using the same layered approach.
@@ -38,7 +38,7 @@ pip install "paramflow[dotenv]"
 | Format | Extension | Notes |
 |--------|-----------|-------|
 | TOML   | `.toml`   | Recommended; native types |
-| YAML   | `.yaml`   | |
+| YAML   | `.yaml`   | Requires `pyyaml` |
 | JSON   | `.json`   | |
 | INI    | `.ini`    | Values are type-inferred (`int`, `float`, `bool`, `str`) |
 | dotenv | `.env`    | Requires `paramflow[dotenv]`; values type-inferred |
@@ -212,6 +212,23 @@ Or point to a different config via env:
 ```sh
 P_SOURCES=prod_params.toml python app.py
 ```
+
+## `pf.load()` reference
+
+```python
+pf.load(*sources, env_prefix, args_prefix, meta_env_prefix, meta_args_prefix, profile_key, default_profile, profile)
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `*sources` | `()` | File paths (`.toml`, `.yaml`, `.json`, `.ini`, `.env`) or dicts to merge in order. `'env'` and `'args'` are reserved source names. |
+| `env_prefix` | `'P_'` | Prefix for environment variables. Set to `None` to disable env source. |
+| `args_prefix` | `''` | Prefix for CLI arguments. Set to `None` to disable args source. |
+| `meta_env_prefix` | `'P_'` | Prefix for env vars that override meta-parameters. |
+| `meta_args_prefix` | `''` | Prefix for CLI args that override meta-parameters. |
+| `profile_key` | `'profile'` | Name of the meta-parameter used to select a profile. |
+| `default_profile` | `'default'` | Name of the base profile section in config files. |
+| `profile` | `None` | Profile to activate on top of `default_profile`. |
 
 ## Metadata keys
 
