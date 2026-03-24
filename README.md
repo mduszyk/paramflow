@@ -352,3 +352,40 @@ prod:
 export P_PROFILE=prod
 python app.py
 ```
+
+## Example: containerized / twelve-factor app
+
+No config file needed. Parameters come entirely from environment variables — the [twelve-factor](https://12factor.net/config) way. A `.env` file is picked up automatically in local development; in production, env vars are injected by the container runtime.
+
+**`app.py`**
+```python
+import paramflow as pf
+
+params = pf.load()  # no file — reads from .env locally, env vars in production
+
+# read params
+params.db_url
+params.debug
+params.port
+```
+
+**`.env`** (local development, not committed to version control)
+```
+P_DB_URL=postgres://localhost/mydb
+P_DEBUG=true
+P_PORT=8080
+```
+
+Run locally — `.env` is discovered automatically:
+```sh
+python app.py
+```
+
+Run in production — env vars injected by the container:
+```sh
+docker run \
+  -e P_DB_URL=postgres://prod-db/mydb \
+  -e P_DEBUG=false \
+  -e P_PORT=8080 \
+  myapp
+```
