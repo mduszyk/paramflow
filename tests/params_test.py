@@ -485,7 +485,7 @@ def test_get_env_params_nested_missing_key():
     env = {'P_OPTIMIZER__UNKNOWN': 'value'}
     ref_params = {'optimizer': {'lr': 0.001}}
     result = get_env_params(env, 'P_', ref_params)
-    assert result == {}
+    assert result == {'optimizer': {'unknown': 'value'}}
 
 
 def test_env_nested_override(temp_file, monkeypatch):
@@ -563,11 +563,11 @@ def test_dotenv_parser_prefix_filter(temp_file):
     assert result['default']['name'] == 'alice'
 
 
-def test_dotenv_parser_key_filter(temp_file):
+def test_dotenv_parser_unknown_key(temp_file):
     dot_env = temp_file('P_NAME=alice\nP_UNKNOWN=xyz', '.env')
     parser = DotEnvParser(dot_env, 'P_', 'default')
     result = parser({'default': {'name': 'bob'}})
-    assert result['default'] == {'name': 'alice'}
+    assert result['default'] == {'name': 'alice', 'unknown': 'xyz'}
 
 
 def test_dotenv_parser_no_match(temp_file):

@@ -147,18 +147,15 @@ def get_env_params(env: Dict[str, Any], prefix: str, ref_params: Dict[str, Any])
         if env_key.startswith(prefix):
             key = env_key.replace(prefix, '', 1).lower()
             keys = key.split('__')
-            if ref_params:
-                ref = ref_params
-                for k in keys:
-                    if not isinstance(ref, dict):
-                        ref = _MISSING
-                        break
-                    ref = ref.get(k, _MISSING)
-                    if ref is _MISSING:
-                        break
+            ref = ref_params
+            for k in keys:
+                if not isinstance(ref, dict):
+                    ref = _MISSING
+                    break
+                ref = ref.get(k, _MISSING)
                 if ref is _MISSING:
-                    continue
-            _set_nested(params, keys, env_value if ref_params else infer_type(env_value))
+                    break
+            _set_nested(params, keys, env_value if ref is not _MISSING else infer_type(env_value))
     return params
 
 

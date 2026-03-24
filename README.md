@@ -38,7 +38,7 @@ pip install "paramflow[dotenv]"
 | Format | Extension | Notes |
 |--------|-----------|-------|
 | TOML   | `.toml`   | Recommended; native types |
-| YAML   | `.yaml`   | Requires `pyyaml` |
+| YAML   | `.yaml`   | |
 | JSON   | `.json`   | |
 | INI    | `.ini`    | Values are type-inferred (`int`, `float`, `bool`, `str`) |
 | dotenv | `.env`    | Requires `paramflow[dotenv]`; filtered by prefix |
@@ -160,9 +160,9 @@ Any depth is supported:
 python app.py --a__b__c 42
 ```
 
-### Key filtering for env vars and CLI args
+### Env vars and CLI args key behaviour
 
-Env vars and CLI args only override keys that **already exist** in the preceding layers. A `P_NEW_KEY` with no matching key in the config file is silently ignored. This keeps the config file the authoritative schema.
+Any env var with the prefix and any CLI arg is accepted. If the key already exists in the config, the reference type is used for conversion. If it doesn't exist, `infer_type` is applied — same behaviour as file-free mode.
 
 ## Profiles
 
@@ -363,10 +363,9 @@ import paramflow as pf
 
 params = pf.load()  # no file — reads from .env locally, env vars in production
 
-# read params
-params.db_url
-params.debug
-params.port
+print(params.db_url)   # postgres://localhost/mydb
+print(params.debug)    # True
+print(params.port)     # 8080
 ```
 
 **`.env`** (local development, not committed to version control)
