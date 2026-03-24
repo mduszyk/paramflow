@@ -103,7 +103,10 @@ class IniParser(Parser):
     def __call__(self, *args) -> Dict[str, Any]:
         config = configparser.ConfigParser()
         config.read(self.path)
-        params: Dict[str, Any] = {section: dict(config.items(section)) for section in config.sections()}
+        params: Dict[str, Any] = {
+            section: {k: infer_type(v) for k, v in config.items(section)}
+            for section in config.sections()
+        }
         if len(params) > 0:
             params['__source__'] = [self.path]
         return params
@@ -155,7 +158,7 @@ def get_env_params(env: Dict[str, Any], prefix: str, ref_params: Dict[str, Any])
                         break
                 if ref is _MISSING:
                     continue
-            _set_nested(params, keys, env_value)
+            _set_nested(params, keys, env_value if ref_params else infer_type(env_value))
     return params
 
 

@@ -431,7 +431,7 @@ def test_flatten_params_deep():
 def test_get_env_params_no_schema():
     env = {'P_LR': '0.001', 'P_DEBUG': 'true', 'OTHER': 'ignored'}
     result = get_env_params(env, 'P_', {})
-    assert result == {'lr': '0.001', 'debug': 'true'}
+    assert result == {'lr': 0.001, 'debug': True}
 
 
 def test_load_pure_env(monkeypatch):
@@ -440,9 +440,9 @@ def test_load_pure_env(monkeypatch):
     monkeypatch.setenv('P_BATCH_SIZE', '32')
     monkeypatch.setattr(sys, 'argv', ['test.py'])
     params = pf.load(env_prefix='P_', args_prefix=None)
-    assert params.lr == '0.001'
-    assert params.debug == 'true'
-    assert params.batch_size == '32'
+    assert params.lr == 0.001
+    assert params.debug == True
+    assert params.batch_size == 32
 
 
 def test_load_pure_args(monkeypatch):
@@ -459,8 +459,8 @@ def test_load_dotenv_autodiscovery(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(sys, 'argv', ['test.py'])
     params = pf.load()
-    assert params.lr == '0.001'
-    assert params.debug == 'true'
+    assert params.lr == 0.001
+    assert params.debug == True
 
 
 def test_load_dotenv_autodiscovery_not_triggered_when_sources_given(tmp_path, monkeypatch, temp_file):

@@ -13,7 +13,8 @@ ParamFlow is a lightweight library for layered configuration management, tailore
 ParamFlow is intentionally minimalist. You define parameters once in a config file — no schemas, no type annotations, no boilerplate. Types are inferred from the values in the config file and automatically applied when overriding via environment variables or CLI arguments. One `pf.load()` call is all you need, and the result is a plain Python dict — works anywhere a dict does: `json.dumps`, `**unpacking`, serialization libraries, all without conversion.
 
 ## Features
-- **Layered configuration**: Merge parameters from files, environment variables, and CLI arguments in a defined order.
+- **Layered configuration**: Merge parameters from files, environment variables, and CLI arguments in a defined order. Config file is optional — pure env/args loading is supported.
+- **`.env` auto-discovery**: A `.env` file in the current directory is picked up automatically when no sources are specified.
 - **Profile support**: Manage multiple named parameter sets; activate one at runtime.
 - **Immutable result**: Parameters are returned as a frozen, attribute-accessible dict fully compatible with the Python `dict` API — works with `json.dumps`, `**unpacking`, and any serialization library without conversion.
 - **Schema-free type inference**: Types come from the config file values — no annotations required.
@@ -37,7 +38,7 @@ pip install "paramflow[dotenv]"
 | TOML   | `.toml`   | Recommended; native types |
 | YAML   | `.yaml`   | Requires `pyyaml` |
 | JSON   | `.json`   | |
-| INI    | `.ini`    | All values are strings; type conversion only works when a typed value already exists in a preceding layer |
+| INI    | `.ini`    | Values are type-inferred (`int`, `float`, `bool`, `str`) |
 | dotenv | `.env`    | Requires `paramflow[dotenv]`; filtered by prefix |
 
 ## Basic usage
@@ -86,6 +87,32 @@ To disable auto-appending of env or args sources, pass `None` as env and args pr
 ```python
 params = pf.load('params.toml', env_prefix=None, args_prefix=None)
 ```
+
+### File-free loading
+
+No config file is required. You can load purely from environment variables or CLI arguments — useful for containerized workloads where config comes entirely from the environment:
+
+```python
+params = pf.load()  # env vars and CLI args only
+```
+
+```sh
+P_LR=0.001 P_BATCH_SIZE=32 python app.py
+# or
+python app.py --lr 0.001 --batch_size 32
+```
+
+Without a config file as a schema, all prefixed env vars and all CLI args are accepted. Values are type-inferred (`int`, `float`, `bool`, or `str`) in both cases.
+
+### `.env` auto-discovery
+
+If `pf.load()` is called with no sources and a `.env` file exists in the current directory, it is loaded automatically — no path needed:
+
+```python
+params = pf.load()  # picks up .env if present
+```
+
+This only triggers when no sources are explicitly provided. Explicit sources always take precedence.
 
 ### Inline dicts as sources
 
