@@ -104,7 +104,7 @@ P_LR=0.001 P_BATCH_SIZE=32 python app.py
 python app.py --lr 0.001 --batch_size 32
 ```
 
-Without a config file as a schema, all prefixed env vars and all CLI args are accepted. Values are type-inferred (`int`, `float`, `bool`, or `str`) in both cases.
+Without a config file, there is no reference type to guide conversion, so all values are type-inferred (`int`, `float`, `bool`, or `str`).
 
 ### `.env` auto-discovery
 
