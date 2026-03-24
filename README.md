@@ -35,7 +35,7 @@ pip install "paramflow[dotenv]"
 | TOML   | `.toml`   | Recommended; native types |
 | YAML   | `.yaml`   | Requires `pyyaml` |
 | JSON   | `.json`   | |
-| INI    | `.ini`    | All values are strings; rely on type conversion |
+| INI    | `.ini`    | All values are strings; type conversion only works when a typed value already exists in a preceding layer |
 | dotenv | `.env`    | Requires `paramflow[dotenv]`; filtered by prefix |
 
 ## Basic usage

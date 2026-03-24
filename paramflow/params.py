@@ -109,7 +109,9 @@ def build_parsers(sources: List[str], meta: ParamsDict):
 def activate_profile(params: Dict[str, Any], default_profile: str, profile: str) -> Dict[str, Any]:
     profile_params = params.get(default_profile)
     if profile_params is None:
-        profile_params = params  # profiles disabled
+        profile_params = dict(params)  # profiles disabled
+    else:
+        profile_params = dict(profile_params)
     if '__source__' in params:
         profile_params['__source__'] = params['__source__']
     profile_params['__profile__'] = [default_profile]

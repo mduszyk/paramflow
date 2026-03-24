@@ -299,6 +299,20 @@ def test_activate_profile_missing_lists_available():
     assert '__source__' not in msg
 
 
+def test_activate_profile_no_mutation():
+    params = {'default': {'x': 1}, 'prod': {'x': 2}}
+    original_default = dict(params['default'])
+    activate_profile(params, 'default', 'prod')
+    assert params['default'] == original_default
+
+
+def test_activate_profile_no_mutation_profiles_disabled():
+    params = {'x': 1, 'y': 2}
+    original = dict(params)
+    activate_profile(params, 'default', None)
+    assert params == original
+
+
 def test_activate_profile_none():
     params = {'default': {'x': 1}, 'prod': {'x': 2}}
     result = activate_profile(params, 'default', None)
