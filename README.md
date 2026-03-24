@@ -271,6 +271,67 @@ optimizer = 'torch.optim.Adam'
 python train.py --profile adam --learning_rate 0.0002
 ```
 
+## Example: research experiments
+
+Profiles map naturally to experiment variants. Define a baseline and override only what changes per experiment — no duplicated config, no separate files per run.
+
+**`params.toml`**
+```toml
+[default]
+model = 'resnet18'
+learning_rate = 0.001
+batch_size = 64
+dropout = 0.3
+epochs = 50
+random_seed = 42
+
+[large]
+model = 'resnet50'
+batch_size = 32
+
+[no_dropout]
+dropout = 0.0
+
+[high_lr]
+learning_rate = 0.01
+epochs = 30
+```
+
+**`train.py`**
+```python
+import json
+import paramflow as pf
+
+params = pf.load('params.toml')
+
+# log exact config for reproducibility — one line, works because result is a plain dict
+print(json.dumps(params))
+
+# run experiment...
+```
+
+Run a specific variant:
+```sh
+python train.py --profile large
+```
+
+Override a single value on top of a profile:
+```sh
+python train.py --profile large --learning_rate 0.0005
+```
+
+Run on a SLURM cluster via env vars:
+```sh
+P_PROFILE=no_dropout P_RANDOM_SEED=123 python train.py
+```
+
+The logged config always includes `__source__` and `__profile__`, so you know exactly what ran:
+```json
+{"model": "resnet18", "learning_rate": 0.001, "batch_size": 64, "dropout": 0.0,
+ "epochs": 50, "random_seed": 42, "__source__": ["params.toml", "env", "args"],
+ "__profile__": ["default", "no_dropout"]}
+```
+
 ## Example: environment-based deployment config
 
 **`params.yaml`**
