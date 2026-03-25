@@ -8,6 +8,12 @@ fi
 
 VERSION=$1
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+read -p "Release version $VERSION? [y/N] " confirm
+if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+  echo "Aborted."
+  exit 1
+fi
 ROOT="$SCRIPT_DIR/.."
 
 sed -i "s/^version = \".*\"/version = \"$VERSION\"/" "$ROOT/pyproject.toml"
