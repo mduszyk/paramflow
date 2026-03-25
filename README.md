@@ -67,6 +67,13 @@ Run with `--help` to see all parameters and meta-parameters:
 python app.py --help
 ```
 
+Because the result is a plain Python dict, it works anywhere a dict does — no conversion needed:
+```python
+import json
+
+print(json.dumps(params))  # serialize for logging, no conversion needed
+```
+
 ## Parameter layering
 
 Parameters are merged in the order sources are listed. Later sources override earlier ones. By default, `env` and `args` are appended automatically:
