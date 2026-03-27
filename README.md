@@ -76,7 +76,7 @@ print(json.dumps(params))  # serialize for logging, no conversion needed
 
 ## Parameter layering
 
-Parameters are merged in the order sources are listed. Later sources override earlier ones. By default, `env` and `args` are appended automatically:
+Parameters are merged in the order sources are listed. Later sources override earlier ones. By default, `env` and `args` are appended automatically — they are the only implicit sources; everything else must be listed explicitly:
 
 ```
 params.toml  →  env vars  →  CLI args
