@@ -113,15 +113,15 @@ python app.py --lr 0.001 --batch_size 32
 
 Without a config file, there is no reference type to guide conversion, so all values are type-inferred (`int`, `float`, `bool`, or `str`).
 
-### `.env` auto-discovery
+### `.env` files
 
-If `pf.load()` is called with no sources and a `.env` file exists in the current directory, it is loaded automatically — no path needed:
+`.env` files are listed explicitly as sources, keeping configuration loading transparent:
 
 ```python
-params = pf.load()  # picks up .env if present
+params = pf.load('params.toml', '.env')
 ```
 
-This only triggers when no sources are explicitly provided. Explicit sources always take precedence.
+This merges the TOML file first, then applies any prefixed vars from `.env` on top. As with all sources, later entries override earlier ones.
 
 ### Inline dicts as sources
 

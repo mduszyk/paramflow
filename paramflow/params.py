@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 from typing import Any, List, Dict, Optional, Final
 
@@ -63,11 +62,6 @@ def load(*sources: str | dict,
     meta = freeze(meta)
 
     sources = list(meta.sources) if meta.sources else []
-
-    if len(sources) == 0:
-        dotenv_path = os.path.join(os.getcwd(), '.env')
-        if os.path.exists(dotenv_path):
-            sources.append(dotenv_path)
 
     if ENV_SOURCE not in sources and meta.env_prefix is not None:
         sources.append(ENV_SOURCE)

@@ -453,26 +453,6 @@ def test_load_pure_args(monkeypatch):
     assert params.batch_size == 32
 
 
-def test_load_dotenv_autodiscovery(tmp_path, monkeypatch):
-    dot_env = tmp_path / '.env'
-    dot_env.write_text('P_LR=0.001\nP_DEBUG=true\n')
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, 'argv', ['test.py'])
-    params = pf.load()
-    assert params.lr == 0.001
-    assert params.debug == True
-
-
-def test_load_dotenv_autodiscovery_not_triggered_when_sources_given(tmp_path, monkeypatch, temp_file):
-    dot_env = tmp_path / '.env'
-    dot_env.write_text('P_LR=0.001\n')
-    monkeypatch.chdir(tmp_path)
-    toml = temp_file('[default]\nbatch_size = 32', '.toml')
-    monkeypatch.setattr(sys, 'argv', ['test.py'])
-    params = pf.load(toml)
-    assert params.batch_size == 32
-    assert not hasattr(params, 'lr') or 'lr' not in params
-
 
 def test_get_env_params_nested(monkeypatch):
     env = {'P_OPTIMIZER__LR': '0.0001', 'P_OPTIMIZER__MOMENTUM': '0.95'}
