@@ -16,7 +16,7 @@ ParamFlow is intentionally minimalist. You define parameters once in a config fi
 
 ## Features
 - **Layered configuration**: Merge parameters from files, environment variables, and CLI arguments in a defined order. Config file is optional — pure env/args loading is supported.
-- **`.env` auto-discovery**: A `.env` file in the current directory is picked up automatically when no sources are specified.
+- **`.env` support**: `.env` files can be listed explicitly as a source alongside other config files.
 - **Profile support**: Manage multiple named parameter sets; activate one at runtime.
 - **Immutable result**: Parameters are returned as a frozen, attribute-accessible dict fully compatible with the Python `dict` API.
 - **Schema-free type inference**: Types come from the config file values — no annotations required.
