@@ -334,7 +334,7 @@ Override a single value on top of a profile:
 python train.py --profile large --learning_rate 0.0005
 ```
 
-Run on a SLURM cluster via env vars:
+Run with env vars:
 ```sh
 P_PROFILE=no_dropout P_RANDOM_SEED=123 python train.py
 ```
