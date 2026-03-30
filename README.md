@@ -408,6 +408,5 @@ Run in production — env vars injected by the container override entries in `.e
 docker run \
   -e P_DB_URL=postgres://prod-db/mydb \
   -e P_DEBUG=false \
-  -e P_PORT=8080 \
   myapp
 ```
